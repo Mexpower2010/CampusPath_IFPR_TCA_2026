@@ -1,0 +1,19 @@
+# Build Maven
+target/
+*.class
+
+# Configuracao local do banco (credenciais)
+campus_path/src/main/resources/db.properties
+db.properties
+
+# IDE
+.classpath
+.project
+.settings/
+.idea/
+*.iml
+.vscode/
+
+# Sistema
+.DS_Store
+Thumbs.db
