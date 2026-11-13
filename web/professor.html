@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CampusPath - Area do professor</title>
+  <link rel="stylesheet" href="css/estilo.css">
+</head>
+<body>
+  <header class="topo">
+    <h1>Campus<span>Path</span> <small>IFPR Cascavel</small></h1>
+    <nav class="menu">
+      <a href="index.html">Mapa e rotas</a>
+      <a href="professor.html" class="ativo">Area do professor</a>
+      <a href="admin.html">Administracao</a>
+    </nav>
+  </header>
+
+  <main>
+    <div id="aviso" class="mensagem"></div>
+
+    <section id="painelLogin" class="painel estreito">
+      <h2>Entrar como professor</h2>
+      <form id="formLogin" class="formulario">
+        <div>
+          <label for="login">Login</label>
+          <input id="login" name="login" autocomplete="username" required>
+        </div>
+        <div>
+          <label for="senha">Senha</label>
+          <input id="senha" name="senha" type="password" autocomplete="current-password" required>
+        </div>
+        <button type="submit">Entrar</button>
+      </form>
+      <p class="rodape">Conta de teste: roberta.parcianello / 123456</p>
+    </section>
+
+    <section id="painelSessao" class="painel estreito oculto">
+      <h2>Ola, <span id="nomeSessao">professor</span></h2>
+      <p class="detalhe">Sessao valida ate <span id="expiraSessao">-</span>.</p>
+      <button id="sair" class="secundario">Sair</button>
+    </section>
+
+    <div id="painelAcoes" class="grade oculto">
+      <section class="painel">
+        <h2>Minha presenca</h2>
+        <form id="formLocalizacao" class="formulario">
+          <div>
+            <label for="sala">Sala onde estou</label>
+            <select id="sala"></select>
+          </div>
+          <div class="linha">
+            <button type="submit">Atualizar localizacao</button>
+            <button type="button" id="removerPresenca" class="secundario">Remover presenca</button>
+          </div>
+        </form>
+        <p class="detalhe">A sala precisa ser um ponto do tipo SALA. Remover a presenca mantem o cadastro do professor.</p>
+      </section>
+
+      <section class="painel">
+        <h2>Mensagem para os alunos</h2>
+        <form id="formMensagem" class="formulario">
+          <div>
+            <label for="mensagem">Mensagem</label>
+            <textarea id="mensagem" rows="4" maxlength="255" required></textarea>
+          </div>
+          <button type="submit">Publicar mensagem</button>
+        </form>
+        <p class="detalhe">O horario de publicacao e registrado pelo banco de dados.</p>
+      </section>
+
+      <section class="painel">
+        <h2>Perfil</h2>
+        <form id="formPerfil" class="formulario">
+          <div>
+            <label for="nome">Nome exibido</label>
+            <input id="nome" required>
+          </div>
+          <div>
+            <label for="foto">Foto de perfil (URL ou caminho)</label>
+            <input id="foto">
+          </div>
+          <button type="submit">Salvar perfil</button>
+        </form>
+      </section>
+
+      <section class="painel">
+        <h2>Meus dados</h2>
+        <div id="dadosProfessor" class="detalhe-sala">Carregando...</div>
+      </section>
+    </div>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/professor.js"></script>
+</body>
+</html>

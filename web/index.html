@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CampusPath - Mapa e rotas</title>
+  <link rel="stylesheet" href="css/estilo.css">
+</head>
+<body>
+  <header class="topo">
+    <h1>Campus<span>Path</span> <small>IFPR Cascavel</small></h1>
+    <nav class="menu">
+      <a href="index.html" class="ativo">Mapa e rotas</a>
+      <a href="professor.html">Area do professor</a>
+      <a href="admin.html">Administracao</a>
+    </nav>
+  </header>
+
+  <main>
+    <div id="aviso" class="mensagem"></div>
+
+    <div class="grade">
+      <section class="painel">
+        <h2>Mapa do campus</h2>
+
+        <div class="controles">
+          <div>
+            <label for="bloco">Bloco</label>
+            <select id="bloco"></select>
+          </div>
+          <div>
+            <label for="andar">Andar</label>
+            <select id="andar"></select>
+          </div>
+          <div>
+            <label for="origem">Origem</label>
+            <select id="origem"></select>
+          </div>
+          <div>
+            <label for="destino">Sala de destino</label>
+            <select id="destino"></select>
+          </div>
+          <div class="check">
+            <input type="checkbox" id="evitarEscadas">
+            <label for="evitarEscadas" style="margin:0">Evitar escadas</label>
+          </div>
+          <div class="check">
+            <input type="checkbox" id="somenteCoberto">
+            <label for="somenteCoberto" style="margin:0">Somente coberto</label>
+          </div>
+        </div>
+
+        <div class="linha" style="margin-bottom:14px">
+          <button id="calcular">Calcular rota</button>
+          <button id="limpar" class="secundario">Limpar rota</button>
+        </div>
+
+        <svg id="mapa" viewBox="0 0 100 100" role="img" aria-label="Mapa do andar selecionado"></svg>
+
+        <div class="legenda">
+          <span class="sala">Sala</span>
+          <span class="ocupada">Sala com professor</span>
+          <span class="passagem">Passagem</span>
+          <span class="acesso">Acesso</span>
+          <span class="rota">Percurso calculado</span>
+        </div>
+      </section>
+
+      <aside>
+        <section class="painel" style="margin-bottom:16px">
+          <h2>Salas deste andar</h2>
+          <div id="salas" class="lista"></div>
+        </section>
+
+        <section class="painel" style="margin-bottom:16px">
+          <h2>Detalhe da sala</h2>
+          <div id="detalhe" class="detalhe-sala">Selecione uma sala no mapa ou na lista.</div>
+        </section>
+
+        <section class="painel">
+          <h2>Rota</h2>
+          <div id="rotaResumo"></div>
+          <ul id="passos" class="passos"></ul>
+        </section>
+      </aside>
+    </div>
+
+    <p class="rodape">
+      CampusPath - TCB de Linguagem de Programacao II - IFPR Cascavel.
+      API em <a href="api/saude">/api/saude</a>.
+    </p>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/mapa.js"></script>
+  <script src="js/index.js"></script>
+</body>
+</html>

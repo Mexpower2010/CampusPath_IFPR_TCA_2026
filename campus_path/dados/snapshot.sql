@@ -1,6 +1,6 @@
 -- CampusPath - estado atual do banco, gerado automaticamente pela aplicacao.
 -- Versione este arquivo no Git para restaurar o estado em outro computador.
--- Gerado em 2026-11-11 22:53:52
+-- Gerado em 2026-11-13 08:56:20
 
 use campuspath;
 
@@ -46,9 +46,9 @@ insert into trecho(id_trecho, id_ponto_a, id_ponto_b, distancia_metros, possui_e
 insert into trecho(id_trecho, id_ponto_a, id_ponto_b, distancia_metros, possui_escadas, usa_elevador, coberto, interditado) values (13, 15, 12, 10.0, false, false, true, false);
 insert into trecho(id_trecho, id_ponto_a, id_ponto_b, distancia_metros, possui_escadas, usa_elevador, coberto, interditado) values (14, 12, 13, 8.0, false, false, true, false);
 insert into trecho(id_trecho, id_ponto_a, id_ponto_b, distancia_metros, possui_escadas, usa_elevador, coberto, interditado) values (15, 12, 14, 10.0, false, false, true, false);
-insert into administrador(id_admin, nome_admin, email_admin, senha_admin) values (1, 'Administrador', 'admin@campuspath.ifpr.edu.br', 'TROCAR_PELO_HASH');
-insert into professor(id_professor, nome, login, senha_hash, foto_perfil, id_ponto_atual, mensagem, mensagem_enviada_em) values (1, 'Roberta Vanessa Rojo Parcianello', 'roberta.parcianello', 'TROCAR_PELO_HASH', 'fotos/roberta.png', 3, 'Disponivel para atendimento ate as 17h.', '2026-11-12 14:00:00');
-insert into professor(id_professor, nome, login, senha_hash, foto_perfil, id_ponto_atual, mensagem, mensagem_enviada_em) values (2, 'Fabio Moreira', 'fabio.moreira', 'TROCAR_PELO_HASH', 'fotos/fabio.png', 8, 'Em banca de TCC, retorno as 16h.', '2026-11-12 13:30:00');
-insert into professor(id_professor, nome, login, senha_hash, foto_perfil, id_ponto_atual, mensagem, mensagem_enviada_em) values (3, 'Ana Paula Souza', 'ana.souza', 'TROCAR_PELO_HASH', 'fotos/ana.png', 13, 'Atendimento no laboratorio.', '2026-11-12 15:10:00');
+insert into administrador(id_admin, nome_admin, email_admin, senha_admin) values (1, 'Administrador', 'admin@campuspath.ifpr.edu.br', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9');
+insert into professor(id_professor, nome, login, senha_hash, foto_perfil, id_ponto_atual, mensagem, mensagem_enviada_em) values (1, 'Roberta Vanessa Rojo Parcianello', 'roberta.parcianello', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'fotos/roberta.png', 3, 'Disponivel para atendimento ate as 17h.', '2026-11-12 14:00:00');
+insert into professor(id_professor, nome, login, senha_hash, foto_perfil, id_ponto_atual, mensagem, mensagem_enviada_em) values (2, 'Fabio Moreira', 'fabio.moreira', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'fotos/fabio.png', 8, 'Em banca de TCC, retorno as 16h.', '2026-11-12 13:30:00');
+insert into professor(id_professor, nome, login, senha_hash, foto_perfil, id_ponto_atual, mensagem, mensagem_enviada_em) values (3, 'Ana Paula Souza', 'ana.souza', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'fotos/ana.png', 13, 'Atendimento no laboratorio.', '2026-11-12 15:10:00');
 
-update controle_sync set snapshot_aplicado_em = '2026-11-11 22:53:52' where id_controle = 1;
+update controle_sync set snapshot_aplicado_em = '2026-11-13 08:56:20' where id_controle = 1;

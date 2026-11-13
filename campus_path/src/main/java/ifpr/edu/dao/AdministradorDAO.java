@@ -57,6 +57,22 @@ public class AdministradorDAO {
         return null;
     }
 
+    public Administrador buscarPorId(int id) {
+        String sql = "select id_admin, nome_admin, email_admin, senha_admin from administrador where id_admin = ?";
+        try (Connection conexao = Conexao.abrir();
+             PreparedStatement stmt = conexao.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return ler(rs);
+                }
+            }
+        } catch (SQLException e) {
+            throw PersistenciaException.de(e, "Erro ao consultar administrador");
+        }
+        return null;
+    }
+
     public void atualizar(Administrador administrador) {
         String sql = "update administrador set nome_admin = ?, email_admin = ?, senha_admin = ? where id_admin = ?";
         try (Connection conexao = Conexao.abrir();

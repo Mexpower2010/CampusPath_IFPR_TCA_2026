@@ -10,12 +10,13 @@ import java.util.Properties;
 public final class Conexao {
 
     private static final String ARQUIVO = "db.properties";
+    private static Properties configuracao;
 
     private Conexao() {
     }
 
     public static Connection abrir() {
-        Properties config = carregar();
+        Properties config = configuracao();
         String url = valor(config, "db.url", "CAMPUSPATH_DB_URL");
         String usuario = valor(config, "db.user", "CAMPUSPATH_DB_USER");
         String senha = valor(config, "db.password", "CAMPUSPATH_DB_PASSWORD");
@@ -31,6 +32,13 @@ public final class Conexao {
             throw new PersistenciaException(
                 "Nao foi possivel conectar ao banco de dados: " + e.getMessage(), e);
         }
+    }
+
+    private static synchronized Properties configuracao() {
+        if (configuracao == null) {
+            configuracao = carregar();
+        }
+        return configuracao;
     }
 
     private static Properties carregar() {
