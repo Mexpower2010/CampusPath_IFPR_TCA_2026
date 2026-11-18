@@ -1,6 +1,6 @@
 -- CampusPath - estado atual do banco, gerado automaticamente pela aplicacao.
 -- Versione este arquivo no Git para restaurar o estado em outro computador.
--- Gerado em 2026-11-13 08:56:20
+-- Gerado em 2026-11-18 18:02:03
 
 use campuspath;
 
@@ -51,4 +51,4 @@ insert into professor(id_professor, nome, login, senha_hash, foto_perfil, id_pon
 insert into professor(id_professor, nome, login, senha_hash, foto_perfil, id_ponto_atual, mensagem, mensagem_enviada_em) values (2, 'Fabio Moreira', 'fabio.moreira', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'fotos/fabio.png', 8, 'Em banca de TCC, retorno as 16h.', '2026-11-12 13:30:00');
 insert into professor(id_professor, nome, login, senha_hash, foto_perfil, id_ponto_atual, mensagem, mensagem_enviada_em) values (3, 'Ana Paula Souza', 'ana.souza', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'fotos/ana.png', 13, 'Atendimento no laboratorio.', '2026-11-12 15:10:00');
 
-update controle_sync set snapshot_aplicado_em = '2026-11-13 08:56:20' where id_controle = 1;
+update controle_sync set snapshot_aplicado_em = '2026-11-18 18:02:03' where id_controle = 1;

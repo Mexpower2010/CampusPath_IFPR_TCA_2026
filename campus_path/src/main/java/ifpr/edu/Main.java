@@ -1,67 +1,66 @@
 package ifpr.edu;
 
-import ifpr.edu.api.ServidorHttp;
 import ifpr.edu.dao.SnapshotService;
-import ifpr.edu.db.PersistenciaException;
-import ifpr.edu.ui.MenuPrincipal;
+import ifpr.edu.view.JanelaPrincipal;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import java.awt.Color;
+import java.awt.Font;
 
-public class Main {
+public final class Main {
 
-    private static final int PORTA_PADRAO = 8080;
+    private Main() {
+    }
 
     public static void main(String[] args) {
-        String modo = args.length > 0 ? args[0] : "--web";
+        SwingUtilities.invokeLater(Main::abrir);
+    }
+
+    private static void abrir() {
+        aplicarTema();
         try {
-            if ("--console".equals(modo)) {
-                console();
-            } else if ("--web".equals(modo)) {
-                web(args.length > 1 ? Integer.parseInt(args[1]) : PORTA_PADRAO);
-            } else {
-                System.out.println("Uso: java ifpr.edu.Main [--web [porta] | --console]");
-            }
-        } catch (PersistenciaException e) {
-            System.out.println("Erro: " + e.getMessage());
-        } catch (NumberFormatException e) {
-            System.out.println("Erro: porta invalida.");
-        } catch (IOException e) {
-            System.out.println("Erro ao iniciar o servidor: " + e.getMessage());
+            new SnapshotService().sincronizar();
+        } catch (RuntimeException e) {
+            JOptionPane.showMessageDialog(null,
+                "Nao foi possivel preparar o banco de dados.\n\n" + e.getMessage()
+                    + "\n\nConfira o arquivo db.properties em src/main/resources.",
+                "CampusPath", JOptionPane.ERROR_MESSAGE);
+            return;
         }
+        new JanelaPrincipal().setVisible(true);
     }
 
-    private static void console() {
-        SnapshotService snapshot = new SnapshotService();
-        if (snapshot.sincronizar()) {
-            System.out.println("Estado sincronizado a partir de " + snapshot.getArquivo());
+    private static void aplicarTema() {
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {
+            return;
         }
-        new MenuPrincipal(snapshot).abrir();
-    }
-
-    private static void web(int porta) throws IOException {
-        Path raiz = localizarSite();
-        ServidorHttp servidor = new ServidorHttp(porta, raiz);
-        servidor.iniciar();
-        System.out.println("CampusPath no ar em http://localhost:" + servidor.getPorta());
-        System.out.println("Arquivos estaticos servidos de " + servidor.getRaiz());
-        System.out.println("API em http://localhost:" + servidor.getPorta() + "/api/saude");
-        System.out.println("Pressione Ctrl+C para encerrar.");
-    }
-
-    private static Path localizarSite() {
-        Path[] candidatos = {
-            Paths.get("web"),
-            Paths.get("..", "web")
-        };
-        for (Path candidato : candidatos) {
-            if (Files.isDirectory(candidato)) {
-                return candidato;
-            }
-        }
-        throw new PersistenciaException(
-            "Pasta do site nao encontrada. Execute a partir da raiz do repositorio ou de campus_path.");
+        Font fonte = new Font("Segoe UI", Font.PLAIN, 13);
+        UIManager.put("Label.font", fonte);
+        UIManager.put("Button.font", fonte);
+        UIManager.put("TextField.font", fonte);
+        UIManager.put("PasswordField.font", fonte);
+        UIManager.put("TextArea.font", fonte);
+        UIManager.put("ComboBox.font", fonte);
+        UIManager.put("CheckBox.font", fonte);
+        UIManager.put("Table.font", fonte);
+        UIManager.put("TableHeader.font", fonte);
+        UIManager.put("TabbedPane.font", fonte);
+        UIManager.put("TabbedPane.background", new Color(0x17212B));
+        UIManager.put("TabbedPane.foreground", new Color(0xE6EDF3));
+        UIManager.put("TabbedPane.selected", new Color(0x1E2B38));
+        UIManager.put("TabbedPane.contentAreaColor", new Color(0x0F1720));
+        UIManager.put("TabbedPane.focus", new Color(0x0F1720));
+        UIManager.put("TabbedPane.highlight", new Color(0x2B3A4A));
+        UIManager.put("TabbedPane.light", new Color(0x2B3A4A));
+        UIManager.put("TabbedPane.shadow", new Color(0x2B3A4A));
+        UIManager.put("TabbedPane.darkShadow", new Color(0x2B3A4A));
+        UIManager.put("OptionPane.messageFont", fonte);
+        UIManager.put("OptionPane.buttonFont", fonte);
+        UIManager.put("Panel.background", new Color(0x0F1720));
+        UIManager.put("OptionPane.background", new Color(0x17212B));
     }
 }
