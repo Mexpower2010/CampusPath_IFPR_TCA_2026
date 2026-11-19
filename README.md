@@ -1,4 +1,4 @@
-# CampusPath
+                                                        # CampusPath
 
 ### Sistema de Localização de Professores e Navegação no Campus
 
@@ -571,32 +571,43 @@ CampusPath_IFPR_TCA_2026/
 ├── README.md                      este arquivo
 ├── LICENSE                        MIT
 ├── .gitignore                     ignora target/, db.properties e arquivos de IDE
+├── web/                           site estático servido pelo próprio Java (Modo A)
+│   ├── index.html                 mapa, salas e cálculo de rota
+│   ├── professor.html             login e área do professor
+│   ├── admin.html                 login e CRUD administrativo
+│   ├── .nojekyll                  evita o processamento do Jekyll no GitHub Pages
+│   ├── css/
+│   │   └── estilo.css             tema escuro, grade, mapa, tabelas
+│   └── js/
+│       ├── api.js                 cliente fetch com token Bearer
+│       ├── mapa.js                desenho do mapa em SVG
+│       ├── index.js               lógica da página de mapa e rota
+│       ├── professor.js           lógica da área do professor
+│       └── admin.js               lógica do CRUD administrativo
 └── campus_path/                   projeto Maven
     ├── pom.xml
     ├── dados/
     │   └── snapshot.sql           estado do banco versionado no Git (seção 10)
     ├── src/main/java/ifpr/edu/
-    │   ├── Main.java              ponto de entrada: abre a janela
-    │   ├── view/
-    │   │   ├── JanelaPrincipal.java  JFrame com a navegação entre as três telas
-    │   │   ├── PainelMapa.java       mapa, seleção de origem/destino e rota
-    │   │   ├── PainelProfessor.java  login e ações do professor
-    │   │   ├── PainelAdmin.java      CRUD das seis entidades
-    │   │   ├── ComponenteMapa.java   desenho do mapa em Graphics2D
-    │   │   ├── Formulario.java       construtor de formulários em GridBagLayout
-    │   │   └── Estilo.java           cores e fontes do tema escuro
-    │   ├── controller/
-    │   │   ├── MapaController.java      consultas do mapa e cálculo de rota
-    │   │   ├── ProfessorController.java autenticação e ações do professor
-    │   │   └── AdminController.java     CRUD e exportação do snapshot
-    │   ├── dao/
-    │   │   ├── BlocoDAO.java
-    │   │   ├── AndarDAO.java
-    │   │   ├── PontoDAO.java
-    │   │   ├── TrechoDAO.java
-    │   │   ├── ProfessorDAO.java
-    │   │   ├── AdministradorDAO.java
-    │   │   └── SnapshotService.java
+    │   ├── Main.java              ponto de entrada (--web ou --console)
+    │   ├── api/
+    │   │   ├── ServidorHttp.java  com.sun.net.httpserver: API + arquivos estáticos
+    │   │   ├── Api.java           tabela de rotas HTTP
+    │   │   ├── Roteador.java      casamento de método + padrão com {id}
+    │   │   ├── Requisicao.java    método, caminho, query, corpo e token
+    │   │   ├── Resposta.java      status, corpo e content-type
+    │   │   ├── Json.java          escrita e leitura de JSON sem biblioteca externa
+    │   │   ├── JsonModelo.java    conversão das entidades para JSON
+    │   │   ├── ApiMapa.java       handlers de blocos, andares, pontos e trechos
+    │   │   ├── ApiPessoas.java    handlers de autenticação, professores e administradores
+    │   │   ├── ApiRota.java       handlers de mapa, rota e snapshot
+    │   │   ├── SessaoService.java tokens em memória com validade de 2 horas
+    │   │   ├── Autorizacao.java   exigirSessao, exigirAdmin, exigirProfessor
+    │   │   ├── Contexto.java      DAOs, serviços e sessões compartilhados
+    │   │   └── ErroHttp.java      exceção com status HTTP
+    │   ├── db/
+    │   │   ├── Conexao.java       lê db.properties/env e devolve Connection
+    │   │   └── PersistenciaException.java
     │   ├── model/
     │   │   ├── Bloco.java
     │   │   ├── Andar.java
@@ -605,13 +616,24 @@ CampusPath_IFPR_TCA_2026/
     │   │   ├── Trecho.java
     │   │   ├── Professor.java
     │   │   └── Administrador.java
+    │   ├── dao/
+    │   │   ├── BlocoDAO.java
+    │   │   ├── AndarDAO.java
+    │   │   ├── PontoDAO.java
+    │   │   ├── TrechoDAO.java
+    │   │   ├── ProfessorDAO.java
+    │   │   ├── AdministradorDAO.java
+    │   │   └── SnapshotService.java
     │   ├── service/
     │   │   ├── RotaService.java   Dijkstra + filtros
     │   │   ├── Rota.java          resultado imutável
     │   │   └── AutenticacaoService.java
-    │   ├── db/
-    │   │   ├── Conexao.java       lê db.properties/env e devolve Connection
-    │   │   └── PersistenciaException.java
+    │   ├── ui/
+    │   │   ├── MenuPrincipal.java
+    │   │   ├── MenuAluno.java
+    │   │   ├── MenuProfessor.java
+    │   │   ├── MenuAdmin.java
+    │   │   └── Entrada.java
     │   └── util/
     │       └── Senha.java         SHA-256
     └── src/main/resources/
@@ -624,99 +646,65 @@ CampusPath_IFPR_TCA_2026/
             └── usuario.sql        usuário de aplicação com permissão mínima
 ```
 
-Total: **31 arquivos Java**. Não existe `src/test`.
+Total: **40 arquivos Java** (26 do núcleo + 14 do pacote `api`). Não existe `src/test`.
 
-### 7.1 Camadas (MVC)
+### 7.1 Camadas
 
 ```
-view        JanelaPrincipal, PainelMapa, PainelProfessor, PainelAdmin, ComponenteMapa
-controller  MapaController, ProfessorController, AdminController
-service     RotaService (Dijkstra), Rota, AutenticacaoService
-dao         acesso a dados com PreparedStatement
-model       objetos de domínio (POJOs)
-db          Conexao e PersistenciaException
-util        Senha (SHA-256)
+api       ServidorHttp, roteador, handlers e JSON (Modo A)
+ui        menus de console e leitura de teclado (Modo --console)
+service   RotaService (Dijkstra), Rota, AutenticacaoService
+dao       acesso a dados com PreparedStatement
+model     objetos de domínio (POJOs)
+db        Conexao e PersistenciaException
+util      Senha (SHA-256)
 ```
 
-Regras de dependência: `view` nunca contém SQL nem abre `Connection`; `view` conversa apenas com
-`controller`; `controller` orquestra `dao` e `service`; `dao` é a única camada que fala SQL; `model`
-não depende de ninguém. Toda falha de banco chega à `view` como `PersistenciaException` com mensagem
-em português, exibida em `JOptionPane` ou na barra de status.
+Regras de dependência: `api` e `ui` nunca contêm SQL; `dao` é a única camada que fala SQL; `model` não
+depende de ninguém; toda falha de banco chega às bordas como `PersistenciaException` com mensagem em
+português. O pacote `api` reutiliza exatamente os mesmos DAOs e serviços do console — não há segunda
+implementação de regra de negócio.
 
 ---
 
 ## 8. Como compilar e executar
 
-O sistema é uma aplicação desktop Swing: rodar o `Main` abre a janela, sem servidor, sem navegador e
-sem porta de rede.
+O modo padrão é o **Modo A**: um único processo Java serve a API JSON e o site estático em
+`http://localhost:8080`, na mesma origem. O modo console continua disponível com `--console`.
 
-### 8.1 Passo a passo no Windows (do zero até a janela abrir)
+### 8.1 Preparar o banco (uma vez por computador)
 
-Este roteiro foi executado nesta máquina e é o caminho mais curto. Abra o **PowerShell** e siga na
-ordem. Todos os comandos partem da raiz do repositório.
-
-**Passo 0 — Conferir o que já existe**
-
-```powershell
-cd A:\CampusPath_IFPR_TCA_2026
-java -version
-& "C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe" --version
-```
-
-É preciso JDK 17 ou superior (aqui roda o 25) e o MySQL Server instalado. O Maven **não** é
-necessário: os passos abaixo compilam com `javac`.
-
-**Passo 1 — Testar o login do root**
-
-```powershell
-& "C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe" -u root -p -e "select version();"
-```
-
-Digite a senha do root definida na instalação. Se der `Access denied`, a senha está errada e nada
-adiante vai funcionar — redefina pelo MySQL Installer (Reconfigure) ou pelo método `--init-file` da
-documentação oficial antes de continuar.
-
-**Passo 2 — Criar o banco e carregar os dados**
-
-```powershell
-$M = "C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe"
-& $M -u root -p --default-character-set=utf8mb4 < campus_path\src\main\resources\db\schema.sql
-& $M -u root -p --default-character-set=utf8mb4 < campus_path\src\main\resources\db\dados_iniciais.sql
-& $M -u root -p --default-character-set=utf8mb4 < campus_path\src\main\resources\db\procedures.sql
+```bash
+mysql -u root -p < campus_path/src/main/resources/db/schema.sql
+mysql -u root -p < campus_path/src/main/resources/db/dados_iniciais.sql
+mysql -u root -p < campus_path/src/main/resources/db/usuario.sql
 ```
 
 Não passe o nome do banco no comando: o `schema.sql` já executa `create database if not exists` e
-`use campuspath`. O `procedures.sql` é opcional para a janela, mas faz parte da entrega.
+`use campuspath`.
 
-Confira:
+O `usuario.sql` cria `campuspath@localhost` com permissão apenas de `SELECT`, `INSERT`, `UPDATE` e
+`DELETE`. Antes de executá-lo, troque `TROCAR_ESTA_SENHA` por uma senha sua — ela será usada no
+`db.properties`. Se preferir usar `root` no desenvolvimento, pule este passo e ajuste o
+`db.properties` para `db.user=root` com a senha do root.
 
-```powershell
-& $M -u root -p -e "use campuspath; select count(*) as pontos from ponto; select count(*) as trechos from trecho;"
-```
+### 8.2 Configurar a conexão
 
-Esperado: `15` e `15`.
-
-**Passo 3 — Criar o usuário da aplicação**
-
-```powershell
-& $M -u root -p -e "CREATE USER IF NOT EXISTS 'campuspath'@'localhost' IDENTIFIED BY 'campuspath'; GRANT SELECT, INSERT, UPDATE, DELETE ON campuspath.* TO 'campuspath'@'localhost'; FLUSH PRIVILEGES;"
-```
-
-O `usuario.sql` do repositório faz o mesmo, mas com o placeholder `TROCAR_ESTA_SENHA`. Se preferir
-usá-lo, troque o placeholder antes de executar e use a mesma senha no passo 4.
-
-**Passo 4 — Criar o `db.properties`**
-
-Crie `campus_path\src\main\resources\db.properties` com este conteúdo:
+Copie `campus_path/src/main/resources/db.properties.example` para
+`campus_path/src/main/resources/db.properties` e preencha usuário e senha:
 
 ```properties
 db.url=jdbc:mysql://localhost:3306/campuspath?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Sao_Paulo&characterEncoding=UTF-8
 db.user=campuspath
-db.password=campuspath
+db.password=senha_definida_em_usuario.sql
 ```
 
-O arquivo está no `.gitignore` e não deve ser commitado. Se preferir usar o root, troque para
-`db.user=root` e `db.password=<senha do root>`.
+A senha precisa ser exatamente a mesma definida no `usuario.sql`; se ficar vazia, o MySQL recusa o
+login do usuário `campuspath`.
+
+Alternativamente, use as variáveis de ambiente `CAMPUSPATH_DB_URL`, `CAMPUSPATH_DB_USER` e
+`CAMPUSPATH_DB_PASSWORD`, que têm precedência sobre o arquivo. O `db.properties` está no `.gitignore`
+e não deve ser commitado.
 
 | Parâmetro da URL | Motivo |
 |---|---|
@@ -725,100 +713,130 @@ O arquivo está no `.gitignore` e não deve ser commitado. Se preferir usar o ro
 | `serverTimezone=America/Sao_Paulo` | Evita erro de fuso em `mensagem_enviada_em` (TIMESTAMP) |
 | `characterEncoding=UTF-8` | Preserva acentos nas mensagens dos professores |
 
-Alternativamente, use as variáveis de ambiente `CAMPUSPATH_DB_URL`, `CAMPUSPATH_DB_USER` e
-`CAMPUSPATH_DB_PASSWORD`, que têm precedência sobre o arquivo.
+### 8.3 Com Maven
 
-**Passo 5 — Localizar o driver JDBC**
-
-```powershell
-Get-ChildItem "$env:USERPROFILE\.m2\repository" -Recurse -Filter "mysql-connector*.jar" |
-  Select-Object -ExpandProperty FullName
-```
-
-Use o caminho que aparecer. Nesta máquina é:
-
-```
-C:\Users\Marcelo\.m2\repository\com\mysql\mysql-connector-j\8.3.0\mysql-connector-j-8.3.0.jar
-```
-
-Se não houver nenhum jar, baixe o `mysql-connector-j` no site oficial e aponte o `$CP` para ele.
-
-**Passo 6 — Compilar**
-
-```powershell
-cd A:\CampusPath_IFPR_TCA_2026\campus_path
-$CP = "C:\Users\Marcelo\.m2\repository\com\mysql\mysql-connector-j\8.3.0\mysql-connector-j-8.3.0.jar"
-New-Item -ItemType Directory -Force target\classes | Out-Null
-javac -encoding UTF-8 -d target\classes -cp $CP (Get-ChildItem -Recurse src\main\java -Filter *.java).FullName
-Copy-Item -Recurse -Force src\main\resources\* target\classes\
-```
-
-O `Copy-Item` é obrigatório: sem ele o `db.properties` e os `.sql` não chegam ao classpath e a
-aplicação responde `Configuracao do banco ausente`. Esperado: 42 arquivos `.class`, sem erro.
-
-**Passo 7 — Abrir a janela**
-
-```powershell
-java -cp "target\classes;$CP" ifpr.edu.Main
-```
-
-A janela `CampusPath - IFPR Cascavel` abre em tela cheia lógica de 1180x760. Não há parâmetro de
-porta nem endereço para digitar.
-
-**Passo 8 — Usar o sistema**
-
-| Tela | Como chegar | O que faz |
-|---|---|---|
-| Mapa e rotas | botão **Mapa e rotas** | escolhe bloco e andar, mostra o mapa, calcula rota |
-| Professor | botão **Professor** | login, sala atual, mensagem, nome e foto |
-| Administração | botão **Administracao** | CRUD das seis entidades e exportação do snapshot |
-
-Credenciais:
-
-| Perfil | Usuário | Senha |
-|---|---|---|
-| Administrador | `admin@campuspath.ifpr.edu.br` | `admin123` |
-| Professor | `roberta.parcianello` | `123456` |
-| Professor | `fabio.moreira` | `123456` |
-| Professor | `ana.souza` | `123456` |
-
-**Passo 9 — Fechar**
-
-Feche a janela pelo **X** ou com `Alt+F4`. O processo termina junto.
-
-### 8.2 Com Maven (se você instalar o Maven)
-
-```powershell
+```bash
 cd campus_path
 mvn clean package
-java -cp "target\classes;$env:USERPROFILE\.m2\repository\com\mysql\mysql-connector-j\8.3.0\mysql-connector-j-8.3.0.jar" ifpr.edu.Main
+java -cp "target/classes:$HOME/.m2/repository/mysql/mysql-connector-java/8.0.33/mysql-connector-java-8.0.33.jar" ifpr.edu.Main --web 8080
 ```
 
-O `pom.xml` declara `mysql:mysql-connector-java:8.0.33`; se o Maven baixar essa versão, ajuste o
-`$CP` para o caminho correspondente. No Linux, troque `;` por `:` no classpath.
+No Windows, troque `:` por `;` no classpath.
 
-### 8.3 Telas do sistema
+### 8.4 Sem Maven (apenas JDK + driver)
 
-**Mapa e rotas.** Barra superior com bloco, andar, `Evitar escadas`, `Somente coberto` e
-`Atualizar`. O mapa desenha os pontos do andar e os trechos: verde para trecho coberto, tracejado
-vermelho para interditado, azul grosso para o caminho calculado. Clicar em um ponto define o destino;
-a origem sai do combo. À direita ficam o resultado da rota (distância e passos) e a lista de
-professores presentes. O rodapé do mapa informa quantos pontos o andar tem.
+```bash
+cd campus_path
+CP="$HOME/.m2/repository/mysql/mysql-connector-java/8.0.33/mysql-connector-java-8.0.33.jar"
+javac -encoding UTF-8 -d target/classes -cp "$CP" $(find src/main/java -name "*.java")
+java -cp "target/classes:$CP" ifpr.edu.Main --web 8080
+```
 
-**Professor.** Login com login e senha. Depois do login: sala atual e horário da última mensagem,
-combo de salas com `Atualizar localizacao` e `Remover presenca`, área de mensagem com
-`Publicar mensagem`, e nome e foto com `Salvar perfil`. O botão `Sair` volta ao login.
+Windows (PowerShell):
 
-**Administração.** Login com e-mail e senha. Depois do login, um seletor de entidade
-(`Blocos`, `Andares`, `Pontos`, `Trechos`, `Professores`, `Administradores`) troca a tabela e o
-formulário. Selecionar uma linha carrega o formulário para edição; `Novo` limpa; `Salvar` insere ou
-altera; `Excluir` pede confirmação. `Exportar snapshot` grava `dados/snapshot.sql`.
+```powershell
+$CP = "$env:USERPROFILE\.m2\repository\mysql\mysql-connector-java\8.0.33\mysql-connector-java-8.0.33.jar"
+javac -encoding UTF-8 -d target/classes -cp $CP (Get-ChildItem -Recurse src/main/java -Filter *.java).FullName
+java -cp "target/classes;$CP" ifpr.edu.Main --web 8080
+```
 
-### 8.4 Fluxo de inicialização
+O driver também pode ser baixado direto do repositório oficial e passado em `-cp`; o caminho do `.m2`
+acima é apenas o que o Maven usa por padrão.
 
-`Main.main()` → `SwingUtilities.invokeLater` → `SnapshotService.sincronizar()` (importa
-`dados/snapshot.sql` se o banco estiver vazio) → `JanelaPrincipal`. Se o banco não estiver
-configurado, aparece um `JOptionPane` com a mensagem e a janela não abre.
+### 8.5 Modos de execução e fluxo de inicialização
+
+| Comando | O que faz |
+|---|---|
+| `java ifpr.edu.Main --web 8080` | Sobe o servidor HTTP na porta indicada (padrão 8080) e serve a API e o site |
+| `java ifpr.edu.Main --console` | Abre os menus de console |
+| `java ifpr.edu.Main` | Assume `--web` na porta 8080 |
+
+Nos dois modos, `Main` chama `SnapshotService.sincronizar()` antes de abrir a interface: se o banco
+estiver vazio e existir `dados/snapshot.sql`, o estado versionado é importado. No modo console, a opção
+`0` exporta o estado de volta para `dados/snapshot.sql`; no modo web, o mesmo é feito pelo botão
+**Exportar snapshot** da página de administração (`POST /api/snapshot`).
+
+O servidor procura a pasta do site em `web` e `../web`, nesta ordem, a partir do diretório de
+execução. Rodando de `campus_path/`, ele encontra `../web`.
+
+### 8.6 Mapa dos menus (modo console)
+
+```
+Menu principal
+├── 1 Área do aluno
+│   ├── 1 Ver mapa do campus        → escolhe bloco, andar, opcionalmente abre uma sala
+│   ├── 2 Professores presentes     → nome, sala, mensagem, horário
+│   └── 3 Calcular rota             → origem, destino, evitar escadas, somente coberto
+├── 2 Acesso do professor           → login + senha
+│   ├── 1 Ver meu perfil
+│   ├── 2 Atualizar foto de perfil
+│   ├── 3 Alterar nome exibido
+│   ├── 4 Informar ou alterar minha sala
+│   ├── 5 Publicar ou atualizar mensagem
+│   └── 6 Remover minha presença
+├── 3 Acesso do administrador       → e-mail + senha
+│   ├── 1 Blocos            (listar, cadastrar, alterar, excluir)
+│   ├── 2 Andares           (listar, cadastrar, alterar, excluir)
+│   ├── 3 Pontos do mapa    (listar, cadastrar, alterar, excluir)
+│   ├── 4 Trechos           (listar, cadastrar, alterar, condições, excluir)
+│   ├── 5 Professores       (listar, cadastrar, alterar, excluir)
+│   └── 6 Administradores   (listar, cadastrar, alterar, excluir)
+└── 0 Sair e salvar o estado no repositório
+```
+
+### 8.7 API HTTP (Modo A)
+
+Todas as rotas ficam na mesma origem do site (`http://localhost:8080`), então não há CORS nem
+configuração de proxy. O corpo é JSON; a autenticação usa `Authorization: Bearer <token>`.
+
+| Método | Rota | Acesso | Função |
+|---|---|---|---|
+| GET | `/api/saude` | livre | Verificação de disponibilidade |
+| POST | `/api/auth/professor` | livre | Login com `login` e `senha`; devolve token |
+| POST | `/api/auth/admin` | livre | Login com `email` e `senha`; devolve token |
+| GET | `/api/auth/sessao` | sessão | Tipo, id, nome e validade da sessão |
+| POST | `/api/auth/sair` | sessão | Encerra a sessão |
+| GET | `/api/mapa` | livre | Blocos, andares, pontos, trechos e professores presentes |
+| GET | `/api/rotas?origem&destino&evitarEscadas&somenteCoberto` | livre | Rota calculada com passos e ids do caminho |
+| GET/POST | `/api/blocos` | livre / admin | Listar e cadastrar blocos |
+| PUT/DELETE | `/api/blocos/{id}` | admin | Alterar e excluir blocos |
+| GET/POST | `/api/andares` | livre / admin | Listar (filtro `?bloco=`) e cadastrar andares |
+| PUT/DELETE | `/api/andares/{id}` | admin | Alterar e excluir andares |
+| GET/POST | `/api/pontos` | livre / admin | Listar (filtros `?andar=` e `?tipo=SALA`) e cadastrar pontos |
+| PUT/DELETE | `/api/pontos/{id}` | admin | Alterar e excluir pontos |
+| GET/POST | `/api/trechos` | livre / admin | Listar e cadastrar trechos |
+| PUT/DELETE | `/api/trechos/{id}` | admin | Alterar e excluir trechos |
+| PATCH | `/api/trechos/{id}/condicoes` | admin | Alterar apenas `coberto` e `interditado` |
+| GET/POST | `/api/professores` | livre / admin | Listar (filtros `?presentes` e `?sala=`) e cadastrar professores |
+| PUT/DELETE | `/api/professores/{id}` | admin | Alterar e excluir professores |
+| PUT | `/api/professores/{id}/nome` | próprio professor | Alterar nome exibido |
+| PUT | `/api/professores/{id}/foto` | próprio professor | Alterar foto de perfil |
+| PUT | `/api/professores/{id}/localizacao` | próprio professor | Informar a sala atual (`idPonto` do tipo SALA) |
+| PUT | `/api/professores/{id}/mensagem` | próprio professor | Publicar mensagem com horário do banco |
+| DELETE | `/api/professores/{id}/presenca` | próprio professor | Remover a presença mantendo o cadastro |
+| GET/POST | `/api/administradores` | admin | Listar e cadastrar administradores |
+| PUT/DELETE | `/api/administradores/{id}` | admin | Alterar e excluir administradores |
+| POST | `/api/snapshot` | admin | Exportar o estado para `dados/snapshot.sql` |
+
+Códigos de erro: `400` para dado inválido ou regra de negócio, `401` para token ausente ou expirado,
+`403` para sessão de outro tipo ou de outro professor, `404` para registro inexistente e `500` para
+falha inesperada. O corpo do erro é sempre `{"erro": "mensagem em português"}`.
+
+As sessões são mantidas em memória (`SessaoService`), com validade de 2 horas; reiniciar o servidor
+invalida os tokens emitidos.
+
+### 8.8 Site estático (`web/`)
+
+| Página | Conteúdo |
+|---|---|
+| `index.html` | Mapa em SVG do andar, lista de salas, professores presentes, detalhe da sala e cálculo de rota |
+| `professor.html` | Login, sala atual, remoção de presença, mensagem, nome e foto |
+| `admin.html` | Login e CRUD de blocos, andares, pontos, trechos, professores e administradores, além do snapshot |
+
+O site não tem build: são HTML, CSS e JavaScript puros, sem dependências externas. O mesmo conteúdo
+pode ser publicado no GitHub Pages, mas nesse caso as chamadas `/api/*` não existem — a versão com
+banco exige o servidor Java rodando. Por isso o modo padrão do projeto é o Modo A, com site e API na
+mesma origem.
 
 ---
 
@@ -860,7 +878,8 @@ arquivo texto com o estado completo das seis tabelas.
 
 ### 10.1 Como funciona
 
-1. Ao usar **Exportar snapshot** na tela de administração, `SnapshotService.exportar()` grava:
+1. Ao sair pela opção `0` do console ou ao usar **Exportar snapshot** na página de administração,
+   `SnapshotService.exportar()` grava:
    - cabeçalho com `-- Gerado em yyyy-MM-dd HH:mm:ss`;
    - `delete from` das seis tabelas, na ordem que respeita as FKs;
    - `insert into` de blocos, andares, pontos, trechos, administradores e professores;
@@ -883,7 +902,7 @@ mysql -u root -p < campus_path/src/main/resources/db/schema.sql
 # 2. clonar o repositório (o snapshot vem junto)
 git clone https://github.com/Mexpower2010/CampusPath_IFPR_TCA_2026
 # 3. configurar db.properties e executar
-java -cp "target/classes;$CP" ifpr.edu.Main
+java -cp "target/classes:$CP" ifpr.edu.Main --web 8080
 # saída esperada: "Estado sincronizado a partir de dados/snapshot.sql"
 ```
 
@@ -919,39 +938,40 @@ As senhas são gravadas como SHA-256 hexadecimal em `senha_hash` (professor) e `
 
 | RF | Implementação |
 |---|---|
-| RF01 | `JanelaPrincipal` → botão **Mapa e rotas** → `PainelMapa` |
-| RF02 | `PainelMapa.carregarBlocos()` e `carregarAndares()` com `BlocoDAO.listar()` e `AndarDAO.listarPorBloco()` |
-| RF03 | `ComponenteMapa` desenha anel verde quando `ProfessorDAO.listarPresentes()` tem professor no ponto |
-| RF04 | `PainelMapa.selecionarDestino()` ao clicar no ponto |
-| RF05 | `PainelMapa` mostra `sem sala` quando `Professor.getNomeSala()` é nulo |
-| RF06 | `PainelMapa.carregarProfessores()` → `ProfessorDAO.listarPresentes()` |
+| RF01 | `MenuPrincipal.abrir()` → opção 1 → `MenuAluno.verMapa()` |
+| RF02 | `MenuAluno.verMapa()` com `BlocoDAO.listar()` e `AndarDAO.listarPorBloco()` |
+| RF03 | `MenuAluno.exibirAndar()` marca `[*]` quando `ProfessorDAO.listarPorSala()` não está vazio |
+| RF04 | `MenuAluno.expandirSala()` |
+| RF05 | `MenuAluno.expandirSala()` → "nenhum professor presente nesta sala no momento" |
+| RF06 | `MenuAluno.listarPresentes()` → `ProfessorDAO.listarPresentes()` |
 | RF07 | `ProfessorDAO.publicarMensagem()` grava `LocalDateTime.now()` |
-| RF08 | `PainelMapa.calcularRota()` |
+| RF08 | `MenuAluno.calcularRota()` |
 | RF09 | `RotaService.calcular()` — Dijkstra com `PriorityQueue` |
 | RF10 | `Rota.getPassos()` e `Rota.getDistanciaTotal()` |
-| RF11 | `ComponenteMapa.setCaminho()` desenha o caminho em azul grosso |
+| RF11 | `MenuAluno.exibirAndar(andar, rota)` marca `<== rota` |
 | RF12 | `RotaService.filtrar()` descarta `possui_escadas = true` |
 | RF13 | `RotaService.filtrar()` descarta `coberto = false`, combinável com RF12 |
 | RF14 | `RotaService.motivoSemRota()` |
 | RF15 | `RotaService.calcular()` insere "Troca de andar" e "Troca de bloco" |
-| RF16 | `PainelProfessor.entrar()` → `AutenticacaoService.autenticarProfessor()` |
+| RF16 | `MenuProfessor.abrir()` → `AutenticacaoService.autenticarProfessor()` |
 | RF17 | `AutenticacaoService` → "Login ou senha invalidos." |
-| RF18 | `PainelProfessor.salvarPerfil()` → `ProfessorDAO.atualizarFoto()` |
-| RF19 | `PainelProfessor.salvarPerfil()` → `ProfessorDAO.atualizarNome()` |
-| RF20 | `PainelProfessor.atualizarLocalizacao()` valida `Ponto.isSala()` |
-| RF21 | `PainelProfessor.publicarMensagem()` → `ProfessorDAO.publicarMensagem()` |
+| RF18 | `MenuProfessor.atualizarFoto()` → `ProfessorDAO.atualizarFoto()` |
+| RF19 | `MenuProfessor.atualizarNome()` → `ProfessorDAO.atualizarNome()` |
+| RF20 | `MenuProfessor.atualizarSala()` valida `Ponto.isSala()` |
+| RF21 | `MenuProfessor.publicarMensagem()` → `ProfessorDAO.publicarMensagem()` |
 | RF22 | `ProfessorDAO.atualizarLocalizacao()` |
 | RF23 | `ProfessorDAO.removerPresenca()` |
-| RF24 | `PainelAdmin` → abas `Blocos`, `Andares`, `Pontos`, `Trechos`, `Professores` |
-| RF25 | `PainelAdmin.entrar()` → `AutenticacaoService.autenticarAdministrador()` |
+| RF24 | `MenuAdmin.menuBlocos/menuAndares/menuPontos/menuTrechos/menuProfessores` |
+| RF25 | `MenuAdmin.abrir()` → `AutenticacaoService.autenticarAdministrador()` |
 | RF26 | Não há coluna de perfil ou nível; qualquer linha em `administrador` tem acesso total |
 | RF27 | `ProfessorDAO.excluir()` remove só a linha de `professor` |
-| RF28 | Aba `Trechos` → `TrechoDAO.atualizarCondicoes()` |
+| RF28 | `MenuAdmin.menuTrechos()` opção 4 → `TrechoDAO.atualizarCondicoes()` |
 
-Na janela Swing, cada RF tem o equivalente direto usando os mesmos DAOs e serviços: RF01–RF15 em
-`PainelMapa` (`MapaController`); RF16–RF23 em `PainelProfessor` (`ProfessorController`); RF24–RF28 em
-`PainelAdmin` (`AdminController`), com a edição de `coberto` e `interditado` na aba `Trechos` para
-RF28.
+No Modo A, cada RF tem o equivalente HTTP usando os mesmos DAOs e serviços: RF01–RF15 em
+`GET /api/mapa` e `GET /api/rotas`; RF16–RF23 em `POST /api/auth/professor` e nas rotas
+`/api/professores/{id}/nome`, `/foto`, `/localizacao`, `/mensagem` e `/presenca`; RF24–RF28 nos
+`POST/PUT/DELETE` de `/api/blocos`, `/api/andares`, `/api/pontos`, `/api/trechos`,
+`/api/professores` e `/api/administradores`, com `PATCH /api/trechos/{id}/condicoes` para RF28.
 
 ### 12.1 Algoritmo de rota
 
@@ -983,7 +1003,7 @@ Complexidade: O((V + E) log V). `Rota` é imutável, com listas `Collections.unm
 | `Unknown database 'campuspath'` | Schema não criado, ou `Default Schema` preenchido no Workbench | Rodar `schema.sql`; deixar `Default Schema` vazio |
 | `Access denied for user 'root'@'localhost'` | Senha errada, ou usuário do Windows usado como usuário do MySQL | Usar `root` com a senha da instalação; o MySQL não usa o usuário do SO |
 | `Access denied for user 'campuspath'` | `usuario.sql` não executado, ou senha divergente | Executar `usuario.sql` e alinhar a senha |
-| `Configuracao do banco ausente` | Nem `db.properties` nem variáveis de ambiente definidos, ou o `db.properties` não foi copiado para `target\classes` | Criar o arquivo conforme o passo 4 e repetir o `Copy-Item` do passo 6 |
+| `Configuracao do banco ausente` | Nem `db.properties` nem variáveis de ambiente definidos | Copiar `db.properties.example` para `db.properties` |
 | `Public Key Retrieval is not allowed` | Falta `allowPublicKeyRetrieval=true` | Ajustar a URL |
 | `The server time zone value ... is unrecognized` | Falta `serverTimezone` | Ajustar a URL |
 | `ClassNotFoundException: com.mysql.cj.jdbc.Driver` | Driver fora do classpath | Incluir o JAR no `-cp` |
@@ -993,18 +1013,18 @@ Complexidade: O((V + E) log V). `Rota` é imutável, com listas `Collections.unm
 | `A localizacao do professor deve ser um ponto do tipo SALA` | Trigger barrou localização em PASSAGEM/ACESSO | Escolher um ponto `SALA` |
 | `Nao existe rota ...` | Filtros eliminaram todos os caminhos | Ler as contagens da mensagem; desativar o filtro que bloqueia |
 | Snapshot não é aplicado | `-- Gerado em` igual ao `controle_sync`, ou arquivo ausente | Conferir o arquivo e a coluna `snapshot_aplicado_em` |
-| Acentuação quebrada na janela | Fonte do sistema sem suporte | Usar `-Dfile.encoding=UTF-8` ao iniciar |
-| `Address already in use` | Não se aplica: a aplicação não abre porta de rede | — |
-| Janela não abre e aparece `Configuracao do banco ausente` | `db.properties` não existe ou não foi copiado para `target\classes` | Criar o arquivo conforme o passo 4 e repetir o `Copy-Item` do passo 6 |
-| `Login ou senha invalidos` | Senha errada ou hash do seed não aplicado | Usar as credenciais da seção 11 |
-| `A localizacao do professor deve ser um ponto do tipo SALA` | Sala escolhida não é do tipo SALA | Escolher uma sala na lista |
-| Tabela do administrador vazia | Sessão não iniciada ou banco sem dados | Fazer login e conferir o passo 2 |
+| Acentuação quebrada no console | Encoding do terminal | Usar `-Dfile.encoding=UTF-8` e terminal UTF-8 |
+| `Address already in use` ao subir o servidor | Porta 8080 ocupada | `java ifpr.edu.Main --web 8081` |
+| `Pasta do site nao encontrada` | Execução fora de `campus_path/` | Rodar de `campus_path/` ou passar a pasta do site |
+| `401` em qualquer rota protegida | Token ausente, expirado ou servidor reiniciado | Fazer login novamente |
+| `403 Acesso restrito ao professor` | Token de administrador em rota de professor, ou token de outro professor | Usar a conta correta |
+| Página abre sem dados | API fora do ar ou banco não configurado | Conferir `GET /api/saude` e a configuração do banco |
 
 ---
 
 ## 14. Convenções de código
 
-- Pacote base `ifpr.edu`; subpacotes por camada (`view`, `controller`, `db`, `model`, `dao`, `service`, `util`).
+- Pacote base `ifpr.edu`; subpacotes por camada (`api`, `db`, `model`, `dao`, `service`, `ui`, `util`).
 - Classes em `PascalCase`, métodos e variáveis em `camelCase`, constantes em `UPPER_SNAKE_CASE`.
 - SQL em minúsculas dentro das strings Java, com `?` para parâmetros — nunca concatenação de valores.
 - Todo `PreparedStatement`, `ResultSet` e `Connection` em `try-with-resources`.
@@ -1014,15 +1034,15 @@ Complexidade: O((V + E) log V). `Rota` é imutável, com listas `Collections.unm
   - 1451 → registro em uso por outro cadastro;
   - 1452 → registro referenciado inexistente;
   - 1644 → mensagem do trigger.
-- Nenhuma classe de `view` ou `controller` contém SQL; nenhuma classe de `dao` imprime no console.
-- `view` trata `RuntimeException` e mostra a mensagem em `JOptionPane` ou na barra de status; nunca
-  deixa a exceção subir até o `EventDispatchThread`.
+- Nenhuma classe de `api` ou `ui` contém SQL; nenhuma classe de `dao` imprime no console.
+- Handlers HTTP devolvem `Resposta` e lançam `ErroHttp` para status 4xx; o `ServidorHttp` traduz
+  `PersistenciaException` em 400 e qualquer outra `RuntimeException` em 500.
 - `Conexao` lê o `db.properties` uma única vez e guarda o resultado em cache estático; sem isso o
   arquivo seria relido do classpath a cada consulta.
-- `ComponenteMapa` calcula os limites das coordenadas uma vez por troca de andar, em vez de a cada
-  repaint, e desenha com um único `Graphics2D` derivado.
-- `AbaCrud` recarrega a tabela apenas depois de uma operação bem-sucedida, evitando consultas
-  repetidas ao banco a cada clique.
+- `GET /api/mapa?bloco=` monta um `Set` com os andares do bloco antes do laço, em vez de consultar o
+  andar de cada ponto.
+- `Roteador` compara primeiro os segmentos literais e só aloca o mapa de parâmetros quando a rota
+  casa, evitando uma alocação por rota testada.
 - Textos de interface sem acento no código-fonte, para não depender do encoding do terminal.
 
 ---
@@ -1033,20 +1053,22 @@ O que foi efetivamente executado e conferido:
 
 | Verificação | Resultado |
 |---|---|
-| Compilação com `javac -encoding UTF-8` (JDK 25, driver 8.3.0) | 31 arquivos, 42 classes, sem erro |
-| `schema.sql` + `dados_iniciais.sql` em MySQL 8.0.46 (Windows, porta 3306) | 6 tabelas, 2 triggers, 15 pontos, 15 trechos, 3 professores, 1 administrador |
-| `procedures.sql` | 4 procedures criadas; `Listar_Professores_Presentes` devolve 3 linhas |
-| Usuário `campuspath@localhost` com SELECT/INSERT/UPDATE/DELETE | Criado e usado pela aplicação |
-| `db.properties` lido do classpath | Conexão OK sem variáveis de ambiente |
+| Compilação com `javac -encoding UTF-8` (JDK 21, driver 8.0.33) | 40 arquivos, sem erro |
+| `schema.sql` + `dados_iniciais.sql` em MySQL 8.0 | 6 tabelas, 2 triggers, 15 pontos, 15 trechos, 3 professores |
 | Reexecução de `schema.sql` e `procedures.sql` | Sem erro (`if not exists` / `drop ... if exists`) |
 | Constraints negativas (extremidades iguais, distância 0, tipo inválido, login duplicado) | Todas rejeitadas |
 | FK negativas (excluir bloco com andares, ponto usado em trecho) | Todas rejeitadas |
 | Trigger de localização em ponto não-SALA | Rejeitado com SQLSTATE 45000 |
-| Janela abre com `java ifpr.edu.Main` | Título `CampusPath - IFPR Cascavel`, 1180x760, sem exceção no console |
-| Tela Mapa e rotas | 6 pontos no Terreiro do Bloco A, trechos desenhados, 3 professores listados |
-| Tela Professor: login `roberta.parcianello` / `123456` | OK; painel mostra sala 101, mensagem e perfil |
-| Tela Administração: login `admin@...` / `admin123` | OK; tabela de blocos com 2 linhas |
-| CRUD pela janela: inserir `Bloco C` | Linha apareceu na tabela com id 4 e status `Operacao concluida.` |
+| Login de professor e de administrador pela API | OK; senha errada devolve 401 com mensagem clara |
+| `GET /api/mapa` e `GET /api/rotas` | 2 blocos, 3 andares, 15 pontos, 15 trechos; rota 1→9 com 35,0 m |
+| `GET /api/mapa?bloco=1` e `?bloco=2` | 11 pontos (andares 1 e 2) e 4 pontos (andar 3) |
+| Método errado e rota inexistente | 405 e 404 |
+| CRUD de bloco pela API (criar, alterar, excluir) | OK, com 401 sem token |
+| CRUD de professor pela API (criar, excluir) | OK |
+| `PUT /api/professores/{id}/mensagem` com token do próprio professor | OK; token de outro professor devolve 403 |
+| `PATCH /api/trechos/{id}/condicoes` | OK |
+| `POST /api/snapshot` | Arquivo regravado em `campus_path/dados/snapshot.sql` |
+| Site servido pelo próprio Java | `/`, `/professor.html`, `/admin.html`, `/css/estilo.css` e `/js/admin.js` com 200 e content-type correto |
 | Rota com "evitar escadas" entre andares | 36,0 m pelo elevador, com troca de andar indicada |
 | Rota impossível com filtros | Mensagem com contagens, filtros preservados |
 | Snapshot: exportar, apagar banco, reimportar | Estado restaurado, incluindo trecho interditado |
@@ -1054,12 +1076,12 @@ O que foi efetivamente executado e conferido:
 
 O que **não** foi verificado neste ambiente:
 
-- `mvn clean package` — Maven não está instalado; a compilação foi feita com `javac` e o classpath
-  montado à mão, exatamente como no passo 6 da seção 8.1.
+- `mvn clean package` — Maven não está instalado na máquina de verificação; a compilação foi feita
+  com `javac` e o classpath montado à mão.
 - Testes automatizados — não existe `src/test` e o `pom.xml` não declara JUnit.
-- Demais abas do administrador (`Andares`, `Pontos`, `Trechos`, `Professores`, `Administradores`) —
-  a inserção foi exercitada apenas em `Blocos`; as outras usam o mesmo `AbaCrud`.
-- Redimensionamento da janela em telas menores que 1180x760.
+- Renderização visual das páginas — o HTML, o CSS e o JavaScript foram servidos e conferidos por
+  HTTP, mas não houve inspeção em navegador.
+- Sessões após reinício do servidor — por projeto, os tokens ficam em memória e são perdidos.
 
 ---
 

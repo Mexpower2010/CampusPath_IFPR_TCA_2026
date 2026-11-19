@@ -15,15 +15,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
+import java.util.function.Supplier;
 
 public class RotaService {
 
-    private final PontoDAO pontos = new PontoDAO();
-    private final TrechoDAO trechos = new TrechoDAO();
+    private final Supplier<List<Ponto>> pontos;
+    private final Supplier<List<Trecho>> trechos;
+
+    public RotaService() {
+        this(new PontoDAO()::listar, new TrechoDAO()::listar);
+    }
+
+    public RotaService(Supplier<List<Ponto>> pontos, Supplier<List<Trecho>> trechos) {
+        this.pontos = pontos;
+        this.trechos = trechos;
+    }
 
     public Rota calcular(int idOrigem, int idDestino, boolean evitarEscadas, boolean somenteCoberto) {
         Map<Integer, Ponto> mapaPontos = new HashMap<>();
-        for (Ponto ponto : pontos.listar()) {
+        for (Ponto ponto : pontos.get()) {
             mapaPontos.put(ponto.getIdPonto(), ponto);
         }
         Ponto origem = mapaPontos.get(idOrigem);
@@ -35,7 +45,7 @@ public class RotaService {
             throw new PersistenciaException("Ponto de destino nao encontrado.");
         }
 
-        List<Trecho> todos = trechos.listar();
+        List<Trecho> todos = trechos.get();
         List<Trecho> liberados = filtrar(todos, evitarEscadas, somenteCoberto);
 
         Map<Integer, List<Trecho>> grafo = montarGrafo(liberados);
@@ -106,7 +116,8 @@ public class RotaService {
             Trecho trecho = usados.get(chave(anterior.getIdPonto(), ponto.getIdPonto()));
             String distancia = trecho == null ? "" : " - " + formatar(trecho.getDistanciaMetros()) + " m";
             passos.add("  -> " + ponto.getNome() + " (" + local(ponto) + ")" + distancia);
-            if (!anterior.getIdAndar().equals(ponto.getIdAndar())) {
+            if (!anterior.getIdAndar().equals(ponto.getIdAndar())
+                && anterior.getNomeBloco().equals(ponto.getNomeBloco())) {
                 passos.add("     Troca de andar: " + anterior.getNomeAndar() + " para " + ponto.getNomeAndar()
                     + descreverAcesso(trecho));
             }
@@ -122,6 +133,9 @@ public class RotaService {
         List<Trecho> liberados = new ArrayList<>();
         for (Trecho trecho : todos) {
             if (trecho.isInterditado()) {
+                continue;
+            }
+            if (trecho.isUsaElevador() && !evitarEscadas) {
                 continue;
             }
             if (evitarEscadas && trecho.isPossuiEscadas()) {
@@ -151,10 +165,14 @@ public class RotaService {
               .append(" e ").append(destino.getNome()).append(" com as opcoes escolhidas.");
 
         long interditados = todos.stream().filter(Trecho::isInterditado).count();
+        long comElevador = todos.stream().filter(t -> !t.isInterditado() && t.isUsaElevador()).count();
         long comEscada = todos.stream().filter(t -> !t.isInterditado() && t.isPossuiEscadas()).count();
         long descobertos = todos.stream().filter(t -> !t.isInterditado() && !t.isCoberto()).count();
 
         motivo.append(" Trechos interditados: ").append(interditados).append(".");
+        if (!evitarEscadas) {
+            motivo.append(" Trechos com elevador excluidos: ").append(comElevador).append(".");
+        }
         if (evitarEscadas) {
             motivo.append(" Trechos com escadas excluidos: ").append(comEscada).append(".");
         }
@@ -167,6 +185,9 @@ public class RotaService {
             motivo.append(" Nenhum trecho restou apos os filtros.");
         } else if (alcanca(origem.getIdPonto(), destino.getIdPonto(), todos, false, false)) {
             motivo.append(" Sem os filtros existe caminho; desative a opcao que bloqueia o percurso.");
+        } else if (!evitarEscadas
+            && alcanca(origem.getIdPonto(), destino.getIdPonto(), todos, true, somenteCoberto)) {
+            motivo.append(" Com a opcao de evitar escadas ativada existe caminho pelo elevador; ative essa opcao.");
         } else {
             motivo.append(" O mapa nao possui ligacao cadastrada entre esses pontos.");
         }

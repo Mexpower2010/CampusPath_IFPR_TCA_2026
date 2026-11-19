@@ -7,13 +7,16 @@ import ifpr.edu.model.Professor;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.ImageIcon;
 import javax.swing.border.EmptyBorder;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Dimension;
@@ -40,7 +43,7 @@ public class PainelProfessor extends JPanel {
     private final JComboBox<Object> comboSalas = new JComboBox<>();
     private final JTextArea campoMensagem = new JTextArea(4, 30);
     private final JTextField campoNome = new JTextField(24);
-    private final JTextField campoFoto = new JTextField(24);
+    private final JLabel miniatura = new JLabel();
     private final JLabel status = new JLabel(" ");
 
     private Professor professor;
@@ -273,11 +276,17 @@ public class PainelProfessor extends JPanel {
         c.gridx = 0;
         painel.add(rotulo("Foto"), c);
         c.gridx = 1;
-        painel.add(campoFoto, c);
+        painel.add(miniatura, c);
 
         c.gridy++;
         c.gridx = 0;
         c.gridwidth = 2;
+        c.insets = new Insets(8, 0, 0, 0);
+        JButton escolherFoto = new JButton("Escolher foto PNG...");
+        escolherFoto.addActionListener(e -> escolherFoto());
+        painel.add(escolherFoto, c);
+
+        c.gridy++;
         c.insets = new Insets(12, 0, 0, 0);
         JButton salvar = new JButton("Salvar perfil");
         salvar.addActionListener(e -> salvarPerfil());
@@ -338,7 +347,8 @@ public class PainelProfessor extends JPanel {
             : professor.getMensagemEnviadaEm().format(FORMATO);
         salaAtual.setText("Sala atual: " + sala + " | Mensagem em " + horario);
         campoNome.setText(professor.getNome());
-        campoFoto.setText(professor.getFotoPerfil() == null ? "" : professor.getFotoPerfil());
+        miniatura.setIcon(new ImageIcon(
+            FotoPerfil.imagem(professor.getFotoPerfil(), professor.getNome(), 80)));
         campoMensagem.setText(professor.getMensagem() == null ? "" : professor.getMensagem());
 
         comboSalas.setSelectedIndex(0);
@@ -419,9 +429,27 @@ public class PainelProfessor extends JPanel {
         }
         try {
             controller.atualizarNome(professor.getIdProfessor(), nome);
-            controller.atualizarFoto(professor.getIdProfessor(), campoFoto.getText().trim());
             recarregar();
             status.setText("Perfil atualizado.");
+        } catch (RuntimeException e) {
+            status.setText(e.getMessage());
+        }
+    }
+
+    private void escolherFoto() {
+        if (professor == null) {
+            return;
+        }
+        JFileChooser escolha = new JFileChooser();
+        escolha.setDialogTitle("Escolher foto PNG");
+        escolha.setFileFilter(new FileNameExtensionFilter("Imagens PNG", "png"));
+        if (escolha.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
+            return;
+        }
+        try {
+            controller.enviarFoto(professor.getIdProfessor(), escolha.getSelectedFile().toPath());
+            recarregar();
+            status.setText("Foto atualizada.");
         } catch (RuntimeException e) {
             status.setText(e.getMessage());
         }

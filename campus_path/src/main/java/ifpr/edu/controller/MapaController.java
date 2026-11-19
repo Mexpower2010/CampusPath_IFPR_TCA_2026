@@ -32,8 +32,16 @@ public class MapaController {
         return andares.listarPorBloco(idBloco);
     }
 
+    public List<Andar> listarAndares() {
+        return andares.listar();
+    }
+
     public List<Ponto> listarPontos(int idAndar) {
         return pontos.listarPorAndar(idAndar);
+    }
+
+    public List<Ponto> listarPontos() {
+        return pontos.listar();
     }
 
     public List<Trecho> listarTrechos() {
@@ -42,6 +50,10 @@ public class MapaController {
 
     public List<Professor> listarProfessoresPresentes() {
         return professores.listarPresentes();
+    }
+
+    public List<Professor> listarProfessoresPorSala(int idPonto) {
+        return professores.listarPorSala(idPonto);
     }
 
     public Rota calcularRota(int idOrigem, int idDestino, boolean evitarEscadas, boolean somenteCoberto) {
