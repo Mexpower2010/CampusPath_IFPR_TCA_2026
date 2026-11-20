@@ -13,7 +13,6 @@ Profª M.a. Roberta Vanessa Rojo Parcianello
 |---|---|
 | Integrante | Marcelo Henrique Rocha Filho |
 | RA | 20251CAS0020007 |
-| Repositório | https://github.com/Mexpower2010/CampusPath_IFPR_TCA_2026 |
 | Entrega documentada | Entrega 1 – Especificação e modelagem |
 | Licença | MIT (ver `LICENSE`) |
 
@@ -523,9 +522,7 @@ que ainda é referenciado, o que realiza as regras de integridade sem código ad
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project>
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>ifpr.edu</groupId>
@@ -542,7 +539,22 @@ que ainda é referenciado, o que realiza as regras de integridade sem código ad
             <artifactId>mysql-connector-java</artifactId>
             <version>8.0.33</version>
         </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.10.2</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+            </plugin>
+        </plugins>
+    </build>
 </project>
 ```
 
@@ -552,12 +564,14 @@ que ainda é referenciado, o que realiza as regras de integridade sem código ad
 | `artifactId` | `campus_path` |
 | `version` | `1.0-SNAPSHOT` |
 | Java | 21 (`maven.compiler.source` e `target`) |
-| Driver JDBC | `mysql:mysql-connector-java:8.0.33` |
+| Driver JDBC | `mysql:mysql-connector-java:8.0.33` (escopo padrão, `compile`) |
+| Testes | `org.junit.jupiter:junit-jupiter:5.10.2` (escopo `test`) |
+| Plugin de testes | `maven-surefire-plugin:3.2.5` |
 | Empacotamento | padrão (`jar`) |
 
-O projeto tem **uma única dependência externa**: o driver JDBC do MySQL. Não há ORM, framework de
-injeção, biblioteca de terceiros para o algoritmo de rota, nem suíte de testes declarada. O Dijkstra é
-implementado à mão com `java.util.PriorityQueue`.
+O projeto tem **duas dependências**: o driver JDBC do MySQL, usada em tempo de execução, e o JUnit 5,
+usada apenas na compilação e execução dos testes. Não há ORM, framework de injeção nem biblioteca de
+terceiros para o algoritmo de rota. O Dijkstra é implementado à mão com `java.util.PriorityQueue`.
 
 Como o POM não configura `maven-jar-plugin` com `Main-Class` nem `maven-shade-plugin`, o `mvn package`
 produz um JAR comum, sem o driver embutido. A execução é feita com `-cp` explícito (seção 8).
@@ -571,40 +585,21 @@ CampusPath_IFPR_TCA_2026/
 ├── README.md                      este arquivo
 ├── LICENSE                        MIT
 ├── .gitignore                     ignora target/, db.properties e arquivos de IDE
-├── web/                           site estático servido pelo próprio Java (Modo A)
-│   ├── index.html                 mapa, salas e cálculo de rota
-│   ├── professor.html             login e área do professor
-│   ├── admin.html                 login e CRUD administrativo
-│   ├── .nojekyll                  evita o processamento do Jekyll no GitHub Pages
-│   ├── css/
-│   │   └── estilo.css             tema escuro, grade, mapa, tabelas
-│   └── js/
-│       ├── api.js                 cliente fetch com token Bearer
-│       ├── mapa.js                desenho do mapa em SVG
-│       ├── index.js               lógica da página de mapa e rota
-│       ├── professor.js           lógica da área do professor
-│       └── admin.js               lógica do CRUD administrativo
-└── campus_path/                   projeto Maven
-    ├── pom.xml
+└── campus_path/                   projeto Maven (é esta a pasta aberta no VS Code)
+    ├── pom.xml                    Java 21, driver MySQL 8.0.33, JUnit 5.10.2
     ├── dados/
     │   └── snapshot.sql           estado do banco versionado no Git (seção 10)
+    ├── fotos/                     imagens de perfil, lidas por caminho relativo
+    │   ├── gato.png               foto inicial do professor 1
+    │   ├── cachorro.png           foto inicial do professor 2
+    │   ├── raposa.png             foto inicial do professor 3
+    │   └── prof_1.png             foto gravada pela tela do professor
     ├── src/main/java/ifpr/edu/
-    │   ├── Main.java              ponto de entrada (--web ou --console)
-    │   ├── api/
-    │   │   ├── ServidorHttp.java  com.sun.net.httpserver: API + arquivos estáticos
-    │   │   ├── Api.java           tabela de rotas HTTP
-    │   │   ├── Roteador.java      casamento de método + padrão com {id}
-    │   │   ├── Requisicao.java    método, caminho, query, corpo e token
-    │   │   ├── Resposta.java      status, corpo e content-type
-    │   │   ├── Json.java          escrita e leitura de JSON sem biblioteca externa
-    │   │   ├── JsonModelo.java    conversão das entidades para JSON
-    │   │   ├── ApiMapa.java       handlers de blocos, andares, pontos e trechos
-    │   │   ├── ApiPessoas.java    handlers de autenticação, professores e administradores
-    │   │   ├── ApiRota.java       handlers de mapa, rota e snapshot
-    │   │   ├── SessaoService.java tokens em memória com validade de 2 horas
-    │   │   ├── Autorizacao.java   exigirSessao, exigirAdmin, exigirProfessor
-    │   │   ├── Contexto.java      DAOs, serviços e sessões compartilhados
-    │   │   └── ErroHttp.java      exceção com status HTTP
+    │   ├── Main.java              ponto de entrada: abre a janela Swing
+    │   ├── controller/
+    │   │   ├── MapaController.java       mapa, professores presentes e rota
+    │   │   ├── ProfessorController.java  login, presença, mensagem, perfil e foto
+    │   │   └── AdminController.java      CRUD das seis entidades e snapshot
     │   ├── db/
     │   │   ├── Conexao.java       lê db.properties/env e devolve Connection
     │   │   └── PersistenciaException.java
@@ -623,54 +618,62 @@ CampusPath_IFPR_TCA_2026/
     │   │   ├── TrechoDAO.java
     │   │   ├── ProfessorDAO.java
     │   │   ├── AdministradorDAO.java
-    │   │   └── SnapshotService.java
+    │   │   └── SnapshotService.java  exporta e aplica dados/snapshot.sql
     │   ├── service/
     │   │   ├── RotaService.java   Dijkstra + filtros
     │   │   ├── Rota.java          resultado imutável
     │   │   └── AutenticacaoService.java
-    │   ├── ui/
-    │   │   ├── MenuPrincipal.java
-    │   │   ├── MenuAluno.java
-    │   │   ├── MenuProfessor.java
-    │   │   ├── MenuAdmin.java
-    │   │   └── Entrada.java
-    │   └── util/
-    │       └── Senha.java         SHA-256
-    └── src/main/resources/
-        ├── db.properties.example  modelo de configuração (versionado)
-        └── db/
-            ├── schema.sql         DDL: 6 tabelas + controle_sync + 2 triggers
-            ├── dados_iniciais.sql dados de teste
-            ├── procedures.sql     4 procedures de apoio
-            ├── consultas.sql      consultas e joins de apoio
-            └── usuario.sql        usuário de aplicação com permissão mínima
+    │   ├── util/
+    │   │   └── Senha.java         SHA-256
+    │   └── view/
+    │       ├── JanelaPrincipal.java  JFrame com as três abas do cabeçalho
+    │       ├── PainelMapa.java       mapa, rota, sala selecionada e presentes
+    │       ├── PainelProfessor.java  login e área do professor
+    │       ├── PainelAdmin.java      login e CRUD administrativo
+    │       ├── ComponenteMapa.java   desenho do mapa e arraste da vista
+    │       ├── SeletorPonto.java     diálogo de origem/destino com busca
+    │       ├── FotoPerfil.java       foto circular ou inicial do nome
+    │       ├── Formulario.java       campos rotulados dos diálogos de CRUD
+    │       └── Estilo.java           cores e fontes do tema escuro
+    ├── src/main/resources/
+    │   ├── db.properties.example  modelo de configuração (versionado)
+    │   └── db/
+    │       ├── schema.sql         DDL: 6 tabelas + controle_sync + 2 triggers
+    │       ├── dados_iniciais.sql dados de teste
+    │       ├── procedures.sql     4 procedures de apoio
+    │       ├── consultas.sql      consultas e joins de apoio
+    │       └── usuario.sql        usuário de aplicação com permissão mínima
+    └── src/test/java/ifpr/edu/service/
+        └── RotaServiceTest.java   8 testes do cálculo de rota, sem banco
 ```
 
-Total: **40 arquivos Java** (26 do núcleo + 14 do pacote `api`). Não existe `src/test`.
+Total: **34 arquivos Java** — 33 em `src/main/java` e 1 em `src/test/java`.
+A interface é Swing, no pacote `view`.
 
 ### 7.1 Camadas
 
 ```
-api       ServidorHttp, roteador, handlers e JSON (Modo A)
-ui        menus de console e leitura de teclado (Modo --console)
-service   RotaService (Dijkstra), Rota, AutenticacaoService
-dao       acesso a dados com PreparedStatement
-model     objetos de domínio (POJOs)
-db        Conexao e PersistenciaException
-util      Senha (SHA-256)
+view        janela Swing, painéis, componente de mapa e diálogos
+controller  ponte entre a view e os DAOs/serviços (Mapa, Professor, Admin)
+service     RotaService (Dijkstra), Rota, AutenticacaoService
+dao         acesso a dados com PreparedStatement e SnapshotService
+model       objetos de domínio (POJOs)
+db          Conexao e PersistenciaException
+util        Senha (SHA-256)
 ```
 
-Regras de dependência: `api` e `ui` nunca contêm SQL; `dao` é a única camada que fala SQL; `model` não
+Regras de dependência: `view` chama `controller`, e `controller` chama `dao` e `service`; `view` e
+`controller` nunca contêm SQL nem abrem `Connection`; `dao` é a única camada que fala SQL; `model` não
 depende de ninguém; toda falha de banco chega às bordas como `PersistenciaException` com mensagem em
-português. O pacote `api` reutiliza exatamente os mesmos DAOs e serviços do console — não há segunda
+português. A `view` só conhece `PersistenciaException` como texto de erro — não há segunda
 implementação de regra de negócio.
 
 ---
 
 ## 8. Como compilar e executar
 
-O modo padrão é o **Modo A**: um único processo Java serve a API JSON e o site estático em
-`http://localhost:8080`, na mesma origem. O modo console continua disponível com `--console`.
+O CampusPath é uma **aplicação desktop Java Swing**: um único processo abre uma janela com três abas
+(Mapa e rotas, Professor, Administração).
 
 ### 8.1 Preparar o banco (uma vez por computador)
 
@@ -713,130 +716,136 @@ e não deve ser commitado.
 | `serverTimezone=America/Sao_Paulo` | Evita erro de fuso em `mensagem_enviada_em` (TIMESTAMP) |
 | `characterEncoding=UTF-8` | Preserva acentos nas mensagens dos professores |
 
-### 8.3 Com Maven
+### 8.3 Dois modos de execução
+
+#### Modo 1 (recomendado) — botão Run do VS Code
+
+Pré-requisitos:
+
+- JDK 21 ou superior instalado e no `PATH` (`java -version` responde);
+- extensão **Extension Pack for Java** (`vscjava.vscode-java-pack`) instalada no VS Code;
+- MySQL em execução, com o banco preparado (8.1) e o `db.properties` configurado (8.2).
+
+Passo a passo:
+
+1. No VS Code, **Arquivo > Abrir Pasta...** e escolha a pasta `campus_path` — não a raiz do
+   repositório.
+2. Aguarde o Java importar o projeto Maven (a barra de status mostra o carregamento e depois
+   "Java: Ready").
+3. Abra `src/main/java/ifpr/edu/Main.java`.
+4. Clique no botão **Run** (triângulo ao lado do método `main`) ou em **Run Java** no canto superior
+   direito.
+
+Por que abrir `campus_path` e não a raiz do repositório: o botão Run usa a pasta aberta como
+**diretório de execução**, e o programa lê e grava `dados/snapshot.sql` e `fotos/` relativos a ele —
+`Paths.get("dados", "snapshot.sql")` em `SnapshotService` e `Paths.get("fotos", "prof_" + id + ".png")`
+em `ProfessorController`. Abrindo a raiz do repositório, o programa cria um `dados/` duplicado na raiz
+e não encontra as imagens de `campus_path/fotos`.
+
+#### Modo 2 — por linha de comando
+
+Execute sempre de dentro de `campus_path`. O driver não está versionado no repositório: use o JAR do
+repositório local do Maven. Nesta máquina o arquivo que existe em disco é
+`C:\Users\Marcelo\.m2\repository\com\mysql\mysql-connector-j\8.0.33\mysql-connector-j-8.0.33.jar` — o
+artefato `mysql:mysql-connector-java:8.0.33` declarado no POM é apenas um POM de relocação, e o JAR
+fica na pasta `com/mysql/mysql-connector-j`.
+
+bash (Git Bash, Linux ou macOS):
+
+```bash
+cd campus_path
+DRIVER="$HOME/.m2/repository/com/mysql/mysql-connector-j/8.0.33/mysql-connector-j-8.0.33.jar"
+javac -encoding UTF-8 -d target/classes -cp "$DRIVER" $(find src/main/java -name "*.java")
+java -cp "target/classes:src/main/resources:$DRIVER" ifpr.edu.Main
+```
+
+PowerShell:
+
+```powershell
+Set-Location campus_path
+$DRIVER = "$env:USERPROFILE\.m2\repository\com\mysql\mysql-connector-j\8.0.33\mysql-connector-j-8.0.33.jar"
+javac -encoding UTF-8 -d target/classes -cp $DRIVER (Get-ChildItem -Recurse src/main/java -Filter *.java).FullName
+java -cp "target/classes;src/main/resources;$DRIVER" ifpr.edu.Main
+```
+
+No Windows o separador do `-cp` é `;`; no Linux e no macOS é `:`.
+
+A pasta `src/main/resources` entra no `-cp` porque `Conexao` carrega o `db.properties` pelo classpath
+(`Conexao.class.getClassLoader().getResourceAsStream("db.properties")`). Sem ela no classpath o
+programa para com "Configuracao do banco ausente". Alternativa: copiar
+`src/main/resources/db.properties` para `target/classes/` depois de compilar.
+
+Alternativa com Maven, quando o `mvn` está instalado (o `package` já copia os recursos para
+`target/classes`):
 
 ```bash
 cd campus_path
 mvn clean package
-java -cp "target/classes:$HOME/.m2/repository/mysql/mysql-connector-java/8.0.33/mysql-connector-java-8.0.33.jar" ifpr.edu.Main --web 8080
+java -cp "target/classes;$DRIVER" ifpr.edu.Main
 ```
 
-No Windows, troque `:` por `;` no classpath.
+### 8.4 Fluxo de inicialização
 
-### 8.4 Sem Maven (apenas JDK + driver)
+`Main.main()` agenda `abrir()` em `SwingUtilities.invokeLater`. `abrir()`:
 
-```bash
-cd campus_path
-CP="$HOME/.m2/repository/mysql/mysql-connector-java/8.0.33/mysql-connector-java-8.0.33.jar"
-javac -encoding UTF-8 -d target/classes -cp "$CP" $(find src/main/java -name "*.java")
-java -cp "target/classes:$CP" ifpr.edu.Main --web 8080
-```
+1. aplica o tema — `UIManager.setLookAndFeel` do sistema e as fontes/cores de `Estilo`;
+2. chama `new SnapshotService().sincronizar()` **antes** de abrir qualquer janela: se
+   `dados/snapshot.sql` existir e o `-- Gerado em` do arquivo for diferente do valor gravado em
+   `controle_sync.snapshot_aplicado_em`, o estado versionado é importado em transação;
+3. se a sincronização falhar (banco fora do ar, `db.properties` ausente), mostra um `JOptionPane` de
+   erro com a mensagem e **encerra sem abrir a janela**;
+4. caso contrário, abre `JanelaPrincipal`.
 
-Windows (PowerShell):
+`JanelaPrincipal` é um `JFrame` com tamanho mínimo de 1280x800, cabeçalho com o título e três botões
+de navegação, e um `CardLayout` com os três painéis. A aba **Mapa e rotas** é a inicial.
 
-```powershell
-$CP = "$env:USERPROFILE\.m2\repository\mysql\mysql-connector-java\8.0.33\mysql-connector-java-8.0.33.jar"
-javac -encoding UTF-8 -d target/classes -cp $CP (Get-ChildItem -Recurse src/main/java -Filter *.java).FullName
-java -cp "target/classes;$CP" ifpr.edu.Main --web 8080
-```
+### 8.5 Telas e uso
 
-O driver também pode ser baixado direto do repositório oficial e passado em `-cp`; o caminho do `.m2`
-acima é apenas o que o Maven usa por padrão.
+O cabeçalho tem três botões — **Mapa e rotas**, **Professor** e **Administracao** — que trocam o
+cartão exibido; o botão da aba ativa fica destacado em azul.
 
-### 8.5 Modos de execução e fluxo de inicialização
+#### Mapa e rotas
 
-| Comando | O que faz |
-|---|---|
-| `java ifpr.edu.Main --web 8080` | Sobe o servidor HTTP na porta indicada (padrão 8080) e serve a API e o site |
-| `java ifpr.edu.Main --console` | Abre os menus de console |
-| `java ifpr.edu.Main` | Assume `--web` na porta 8080 |
+A barra superior mostra a vista atual (`Campus - Terreo` ou `<Bloco> - <Andar>`), as caixas
+**Evitar escadas** e **Somente coberto** e o botão **Atualizar**, que recarrega pontos, trechos e
+professores do banco.
 
-Nos dois modos, `Main` chama `SnapshotService.sincronizar()` antes de abrir a interface: se o banco
-estiver vazio e existir `dados/snapshot.sql`, o estado versionado é importado. No modo console, a opção
-`0` exporta o estado de volta para `dados/snapshot.sql`; no modo web, o mesmo é feito pelo botão
-**Exportar snapshot** da página de administração (`POST /api/snapshot`).
+O mapa (`ComponenteMapa`) desenha os blocos e os pontos do andar visível. A vista inicial é o
+**Térreo**, com os quatro blocos lado a lado — Cantina, Bloco de Salas, Bloco Administrativo e Bloco
+Original — e o mapa pode ser **arrastado** com o mouse para navegar. Não existe seletor de bloco nem
+de andar: a troca de andar é feita clicando no ponto de **escada** ou de **elevador**, que leva à
+vista do andar correspondente; clicar de novo volta ao térreo. Nos andares superiores o arraste fica
+desabilitado. Os trechos entre blocos existem apenas no térreo e, dos 69 trechos, somente o 64
+(Entrada Bloco Administrativo → Entrada Bloco de Salas) e o 66 (Acesso Cantina → Entrada Bloco
+Original) são descobertos.
 
-O servidor procura a pasta do site em `web` e `../web`, nesta ordem, a partir do diretório de
-execução. Rodando de `campus_path/`, ele encontra `../web`.
+Os botões **Origem** e **Destino** abrem o diálogo de `SeletorPonto`, com campo de busca que ignora
+acento e caixa (filtra por nome do ponto, bloco e andar), navegação por setas, Enter para confirmar e
+Esc para cancelar. **Calcular rota** chama `MapaController` → `RotaService`, muda a vista para o andar
+da origem, destaca o percurso no mapa e escreve a distância total na barra de status. Sem rota
+possível, aparece um `JOptionPane` com o motivo e os filtros continuam marcados.
 
-### 8.6 Mapa dos menus (modo console)
+Clicar em um ponto que não seja escada ou elevador define o destino e preenche o cartão **Sala
+selecionada**. Para um ponto `SALA`, ele lista os professores presentes com foto circular, nome,
+mensagem e horário; sem ninguém, informa "Nenhum professor presente nesta sala no momento." Para
+ponto de outro tipo, avisa que não é sala. O cartão **Professores presentes** lista, com foto, nome,
+sala e mensagem, todos os professores com localização atual.
 
-```
-Menu principal
-├── 1 Área do aluno
-│   ├── 1 Ver mapa do campus        → escolhe bloco, andar, opcionalmente abre uma sala
-│   ├── 2 Professores presentes     → nome, sala, mensagem, horário
-│   └── 3 Calcular rota             → origem, destino, evitar escadas, somente coberto
-├── 2 Acesso do professor           → login + senha
-│   ├── 1 Ver meu perfil
-│   ├── 2 Atualizar foto de perfil
-│   ├── 3 Alterar nome exibido
-│   ├── 4 Informar ou alterar minha sala
-│   ├── 5 Publicar ou atualizar mensagem
-│   └── 6 Remover minha presença
-├── 3 Acesso do administrador       → e-mail + senha
-│   ├── 1 Blocos            (listar, cadastrar, alterar, excluir)
-│   ├── 2 Andares           (listar, cadastrar, alterar, excluir)
-│   ├── 3 Pontos do mapa    (listar, cadastrar, alterar, excluir)
-│   ├── 4 Trechos           (listar, cadastrar, alterar, condições, excluir)
-│   ├── 5 Professores       (listar, cadastrar, alterar, excluir)
-│   └── 6 Administradores   (listar, cadastrar, alterar, excluir)
-└── 0 Sair e salvar o estado no repositório
-```
+#### Professor
 
-### 8.7 API HTTP (Modo A)
+Login com login e senha (`AutenticacaoService`). Depois de entrar, três cartões: **Minha presenca**
+(combo com as salas, **Atualizar localizacao** e **Remover presenca**), **Mensagem para os alunos**
+(área de texto e **Publicar mensagem**, com o horário gravado pelo banco) e **Perfil** (nome,
+miniatura da foto, **Escolher foto PNG...** pelo `JFileChooser` e **Salvar perfil**). A foto escolhida
+é copiada para `fotos/prof_<id>.png` e o caminho relativo é gravado em `foto_perfil`. **Sair** volta
+ao login.
 
-Todas as rotas ficam na mesma origem do site (`http://localhost:8080`), então não há CORS nem
-configuração de proxy. O corpo é JSON; a autenticação usa `Authorization: Bearer <token>`.
+#### Administracao
 
-| Método | Rota | Acesso | Função |
-|---|---|---|---|
-| GET | `/api/saude` | livre | Verificação de disponibilidade |
-| POST | `/api/auth/professor` | livre | Login com `login` e `senha`; devolve token |
-| POST | `/api/auth/admin` | livre | Login com `email` e `senha`; devolve token |
-| GET | `/api/auth/sessao` | sessão | Tipo, id, nome e validade da sessão |
-| POST | `/api/auth/sair` | sessão | Encerra a sessão |
-| GET | `/api/mapa` | livre | Blocos, andares, pontos, trechos e professores presentes |
-| GET | `/api/rotas?origem&destino&evitarEscadas&somenteCoberto` | livre | Rota calculada com passos e ids do caminho |
-| GET/POST | `/api/blocos` | livre / admin | Listar e cadastrar blocos |
-| PUT/DELETE | `/api/blocos/{id}` | admin | Alterar e excluir blocos |
-| GET/POST | `/api/andares` | livre / admin | Listar (filtro `?bloco=`) e cadastrar andares |
-| PUT/DELETE | `/api/andares/{id}` | admin | Alterar e excluir andares |
-| GET/POST | `/api/pontos` | livre / admin | Listar (filtros `?andar=` e `?tipo=SALA`) e cadastrar pontos |
-| PUT/DELETE | `/api/pontos/{id}` | admin | Alterar e excluir pontos |
-| GET/POST | `/api/trechos` | livre / admin | Listar e cadastrar trechos |
-| PUT/DELETE | `/api/trechos/{id}` | admin | Alterar e excluir trechos |
-| PATCH | `/api/trechos/{id}/condicoes` | admin | Alterar apenas `coberto` e `interditado` |
-| GET/POST | `/api/professores` | livre / admin | Listar (filtros `?presentes` e `?sala=`) e cadastrar professores |
-| PUT/DELETE | `/api/professores/{id}` | admin | Alterar e excluir professores |
-| PUT | `/api/professores/{id}/nome` | próprio professor | Alterar nome exibido |
-| PUT | `/api/professores/{id}/foto` | próprio professor | Alterar foto de perfil |
-| PUT | `/api/professores/{id}/localizacao` | próprio professor | Informar a sala atual (`idPonto` do tipo SALA) |
-| PUT | `/api/professores/{id}/mensagem` | próprio professor | Publicar mensagem com horário do banco |
-| DELETE | `/api/professores/{id}/presenca` | próprio professor | Remover a presença mantendo o cadastro |
-| GET/POST | `/api/administradores` | admin | Listar e cadastrar administradores |
-| PUT/DELETE | `/api/administradores/{id}` | admin | Alterar e excluir administradores |
-| POST | `/api/snapshot` | admin | Exportar o estado para `dados/snapshot.sql` |
-
-Códigos de erro: `400` para dado inválido ou regra de negócio, `401` para token ausente ou expirado,
-`403` para sessão de outro tipo ou de outro professor, `404` para registro inexistente e `500` para
-falha inesperada. O corpo do erro é sempre `{"erro": "mensagem em português"}`.
-
-As sessões são mantidas em memória (`SessaoService`), com validade de 2 horas; reiniciar o servidor
-invalida os tokens emitidos.
-
-### 8.8 Site estático (`web/`)
-
-| Página | Conteúdo |
-|---|---|
-| `index.html` | Mapa em SVG do andar, lista de salas, professores presentes, detalhe da sala e cálculo de rota |
-| `professor.html` | Login, sala atual, remoção de presença, mensagem, nome e foto |
-| `admin.html` | Login e CRUD de blocos, andares, pontos, trechos, professores e administradores, além do snapshot |
-
-O site não tem build: são HTML, CSS e JavaScript puros, sem dependências externas. O mesmo conteúdo
-pode ser publicado no GitHub Pages, mas nesse caso as chamadas `/api/*` não existem — a versão com
-banco exige o servidor Java rodando. Por isso o modo padrão do projeto é o Modo A, com site e API na
-mesma origem.
+Login com e-mail e senha. Depois de entrar, o combo **Entidade** (Blocos, Andares, Pontos, Trechos,
+Professores, Administradores) troca a tabela exibida, e cada tabela tem os botões de cadastrar,
+alterar e excluir, com os campos em um diálogo montado por `Formulario`. À direita ficam **Exportar
+snapshot**, que grava `dados/snapshot.sql` e mostra o caminho na barra de status, e **Sair**.
 
 ---
 
@@ -847,7 +856,7 @@ Executar nesta ordem, conectado como `root`:
 | Ordem | Arquivo | O que faz |
 |---|---|---|
 | 1 | `db/schema.sql` | Cria o banco `campuspath`, as 6 tabelas, `controle_sync` e os 2 triggers |
-| 2 | `db/dados_iniciais.sql` | Insere 2 blocos, 3 andares, 15 pontos, 15 trechos, 1 administrador e 3 professores |
+| 2 | `db/dados_iniciais.sql` | Insere 4 blocos, 6 andares, 64 pontos, 69 trechos, 1 administrador e 3 professores |
 | 3 | `db/procedures.sql` | Cria 4 procedures de apoio (opcional) |
 | 4 | `db/consultas.sql` | Apenas consultas de exemplo, não altera dados (opcional) |
 | 5 | `db/usuario.sql` | Cria o usuário `campuspath@localhost` com permissão mínima (troque a senha placeholder antes) |
@@ -878,8 +887,7 @@ arquivo texto com o estado completo das seis tabelas.
 
 ### 10.1 Como funciona
 
-1. Ao sair pela opção `0` do console ou ao usar **Exportar snapshot** na página de administração,
-   `SnapshotService.exportar()` grava:
+1. Ao clicar em **Exportar snapshot** na aba Administracao, `SnapshotService.exportar()` grava:
    - cabeçalho com `-- Gerado em yyyy-MM-dd HH:mm:ss`;
    - `delete from` das seis tabelas, na ordem que respeita as FKs;
    - `insert into` de blocos, andares, pontos, trechos, administradores e professores;
@@ -887,8 +895,10 @@ arquivo texto com o estado completo das seis tabelas.
 2. Antes de gravar, `verificado()` compara `count(*)` de cada tabela com o número de linhas geradas.
    Se divergir, lança exceção em vez de gravar um snapshot incompleto.
 3. Ao iniciar, `SnapshotService.sincronizar()` lê o `-- Gerado em` do arquivo e compara com
-   `controle_sync.snapshot_aplicado_em`. Se forem iguais, nada acontece. Se forem diferentes, o
-   arquivo é aplicado.
+   `controle_sync.snapshot_aplicado_em`. O arquivo só é aplicado quando as duas strings são
+   **diferentes**. Nada acontece se: o arquivo `dados/snapshot.sql` não existir; o arquivo não tiver a
+   linha `-- Gerado em`; ou o timestamp for igual ao já registrado. Em banco recém-criado pelo
+   `schema.sql` a coluna vale `NULL`, então o snapshot é aplicado na primeira execução.
 4. A aplicação é feita em **transação** (`setAutoCommit(false)` + `commit`/`rollback`): ou todas as
    linhas entram, ou nenhuma.
 5. Se o snapshot referenciar pontos inexistentes (erro 1452), a mensagem orienta executar o
@@ -899,12 +909,14 @@ arquivo texto com o estado completo das seis tabelas.
 ```bash
 # 1. criar a estrutura
 mysql -u root -p < campus_path/src/main/resources/db/schema.sql
-# 2. clonar o repositório (o snapshot vem junto)
-git clone https://github.com/Mexpower2010/CampusPath_IFPR_TCA_2026
-# 3. configurar db.properties e executar
-java -cp "target/classes:$CP" ifpr.edu.Main --web 8080
-# saída esperada: "Estado sincronizado a partir de dados/snapshot.sql"
+# 2. clonar o repositório pelo Git (o snapshot vem junto)
+git clone <endereco-do-repositorio>
+# 3. configurar db.properties e executar de dentro de campus_path
+java -cp "target/classes:src/main/resources:$CP" ifpr.edu.Main
 ```
+
+A aplicação não imprime nada no terminal: se a sincronização funcionar, a janela abre com o estado do
+snapshot. Se o banco estiver inacessível, aparece um diálogo de erro e a janela não abre.
 
 ### 10.3 Limitações
 
@@ -914,6 +926,12 @@ java -cp "target/classes:$CP" ifpr.edu.Main --web 8080
   conhecidas — aceitável para trabalho acadêmico, não para uso real.
 - O arquivo é gravado no diretório de trabalho atual (`dados/snapshot.sql`). Execute a aplicação a
   partir da pasta `campus_path` para que o caminho coincida com o versionado.
+- **As fotos não viajam dentro do snapshot.** O snapshot guarda apenas o caminho da imagem (por
+  exemplo `fotos/prof_1.png`) na coluna `foto_perfil`; o arquivo da imagem fica em
+  `campus_path/fotos`, que só vai para o Git se for adicionado (`git add campus_path`). Para a foto
+  aparecer em outro computador são necessários os três itens: snapshot exportado, imagem commitada e
+  execução a partir de `campus_path`. Faltando qualquer um, `FotoPerfil` cai no círculo com a inicial
+  do nome.
 
 ---
 
@@ -938,40 +956,37 @@ As senhas são gravadas como SHA-256 hexadecimal em `senha_hash` (professor) e `
 
 | RF | Implementação |
 |---|---|
-| RF01 | `MenuPrincipal.abrir()` → opção 1 → `MenuAluno.verMapa()` |
-| RF02 | `MenuAluno.verMapa()` com `BlocoDAO.listar()` e `AndarDAO.listarPorBloco()` |
-| RF03 | `MenuAluno.exibirAndar()` marca `[*]` quando `ProfessorDAO.listarPorSala()` não está vazio |
-| RF04 | `MenuAluno.expandirSala()` |
-| RF05 | `MenuAluno.expandirSala()` → "nenhum professor presente nesta sala no momento" |
-| RF06 | `MenuAluno.listarPresentes()` → `ProfessorDAO.listarPresentes()` |
-| RF07 | `ProfessorDAO.publicarMensagem()` grava `LocalDateTime.now()` |
-| RF08 | `MenuAluno.calcularRota()` |
+| RF01 | `Main.abrir()` → `JanelaPrincipal`, que já abre no cartão `mapa` |
+| RF02 | Parcial: a alternância de andar existe (`PainelMapa.trocarAndar()`, clique em escada ou elevador), mas **não há seleção de bloco** na tela — o térreo mostra os quatro blocos juntos |
+| RF03 | `PainelMapa.carregarProfessores()` → `ComponenteMapa.setProfessores()` desenha as fotos nos pontos com presença |
+| RF04 | `PainelMapa.montarProfessorSala()` — foto, nome, mensagem e horário |
+| RF05 | `PainelMapa.atualizarSala()` → "Nenhum professor presente nesta sala no momento." |
+| RF06 | Cartão "Professores presentes" → `MapaController.listarProfessoresPresentes()` → `ProfessorDAO.listarPresentes()` |
+| RF07 | `ProfessorDAO.publicarMensagem()` grava `mensagem_enviada_em = LocalDateTime.now()` |
+| RF08 | `SeletorPonto` de origem e de destino em `PainelMapa.montarRota()` |
 | RF09 | `RotaService.calcular()` — Dijkstra com `PriorityQueue` |
-| RF10 | `Rota.getPassos()` e `Rota.getDistanciaTotal()` |
-| RF11 | `MenuAluno.exibirAndar(andar, rota)` marca `<== rota` |
-| RF12 | `RotaService.filtrar()` descarta `possui_escadas = true` |
-| RF13 | `RotaService.filtrar()` descarta `coberto = false`, combinável com RF12 |
-| RF14 | `RotaService.motivoSemRota()` |
-| RF15 | `RotaService.calcular()` insere "Troca de andar" e "Troca de bloco" |
-| RF16 | `MenuProfessor.abrir()` → `AutenticacaoService.autenticarProfessor()` |
-| RF17 | `AutenticacaoService` → "Login ou senha invalidos." |
-| RF18 | `MenuProfessor.atualizarFoto()` → `ProfessorDAO.atualizarFoto()` |
-| RF19 | `MenuProfessor.atualizarNome()` → `ProfessorDAO.atualizarNome()` |
-| RF20 | `MenuProfessor.atualizarSala()` valida `Ponto.isSala()` |
-| RF21 | `MenuProfessor.publicarMensagem()` → `ProfessorDAO.publicarMensagem()` |
-| RF22 | `ProfessorDAO.atualizarLocalizacao()` |
-| RF23 | `ProfessorDAO.removerPresenca()` |
-| RF24 | `MenuAdmin.menuBlocos/menuAndares/menuPontos/menuTrechos/menuProfessores` |
-| RF25 | `MenuAdmin.abrir()` → `AutenticacaoService.autenticarAdministrador()` |
+| RF10 | Parcial: a distância total aparece na barra de status; a sequência de pontos existe em `Rota.getPassos()`, mas a tela não a lista |
+| RF11 | `ComponenteMapa.setCaminho()` destaca o percurso |
+| RF12 | Caixa "Evitar escadas" → `RotaService.filtrar()` descarta `possui_escadas = true` |
+| RF13 | Caixa "Somente coberto" → `RotaService.filtrar()` descarta `coberto = false`, combinável com RF12 |
+| RF14 | `RotaService.motivoSemRota()` + `JOptionPane` em `PainelMapa.calcularRota()`, com os filtros mantidos |
+| RF15 | `RotaService.calcular()` insere "Troca de andar" e "Troca de bloco" em `Rota.getPassos()`; a tela avisa na barra de status que o percurso pode continuar em outro andar |
+| RF16 | `PainelProfessor.entrar()` → `AutenticacaoService.autenticarProfessor()` |
+| RF17 | `AutenticacaoService` → "Login ou senha invalidos.", exibido em `mensagemLogin` |
+| RF18 | `PainelProfessor.escolherFoto()` → `ProfessorController.enviarFoto()` → `ProfessorDAO.atualizarFoto()` |
+| RF19 | `PainelProfessor.salvarPerfil()` → `ProfessorController.atualizarNome()` |
+| RF20 | Combo de salas de `ProfessorController.listarSalas()`; o trigger do banco recusa ponto não-SALA |
+| RF21 | `PainelProfessor.publicarMensagem()` → `ProfessorController.publicarMensagem()` |
+| RF22 | `ProfessorController.atualizarLocalizacao()` → `ProfessorDAO.atualizarLocalizacao()` |
+| RF23 | `ProfessorController.removerPresenca()` → `ProfessorDAO.removerPresenca()` |
+| RF24 | `PainelAdmin` com as abas `AbaBlocos`, `AbaAndares`, `AbaPontos`, `AbaTrechos`, `AbaProfessores` e `AbaAdministradores`, sobre `AdminController` |
+| RF25 | `PainelAdmin.entrar()` → `AutenticacaoService.autenticarAdministrador()` |
 | RF26 | Não há coluna de perfil ou nível; qualquer linha em `administrador` tem acesso total |
-| RF27 | `ProfessorDAO.excluir()` remove só a linha de `professor` |
-| RF28 | `MenuAdmin.menuTrechos()` opção 4 → `TrechoDAO.atualizarCondicoes()` |
+| RF27 | `AdminController.excluirProfessor()` → `ProfessorDAO.excluir()`, que remove só a linha de `professor` |
+| RF28 | `AbaTrechos` com as caixas "Coberto" e "Interditado" → `AdminController.salvarTrecho()` → `TrechoDAO.atualizar()`; `TrechoDAO.atualizarCondicoes()` existe, mas a tela usa `atualizar()` |
 
-No Modo A, cada RF tem o equivalente HTTP usando os mesmos DAOs e serviços: RF01–RF15 em
-`GET /api/mapa` e `GET /api/rotas`; RF16–RF23 em `POST /api/auth/professor` e nas rotas
-`/api/professores/{id}/nome`, `/foto`, `/localizacao`, `/mensagem` e `/presenca`; RF24–RF28 nos
-`POST/PUT/DELETE` de `/api/blocos`, `/api/andares`, `/api/pontos`, `/api/trechos`,
-`/api/professores` e `/api/administradores`, com `PATCH /api/trechos/{id}/condicoes` para RF28.
+Todas as telas usam os mesmos `controller`, DAOs e serviços: não há segunda implementação de regra de
+negócio. A `view` só recebe texto de erro já traduzido por `PersistenciaException`.
 
 ### 12.1 Algoritmo de rota
 
@@ -980,7 +995,9 @@ No Modo A, cada RF tem o equivalente HTTP usando os mesmos DAOs e serviços: RF0
 1. Carrega todos os pontos em um `Map<Integer, Ponto>` e valida origem e destino.
 2. Carrega todos os trechos e aplica os filtros **antes** de montar o grafo:
    - descarta `interditado = true` sempre;
-   - se `evitarEscadas`, descarta `possui_escadas = true`;
+   - se `evitarEscadas` for falso, descarta `usa_elevador = true` — é assim que o modo padrão evita
+     o elevador;
+   - se `evitarEscadas`, descarta `possui_escadas = true` e passa a aceitar o elevador;
    - se `somenteCoberto`, descarta `coberto = false`.
 3. Monta lista de adjacência `Map<Integer, List<Trecho>>` — cada trecho entra nas duas extremidades,
    o que realiza a bidirecionalidade descrita na seção 3.
@@ -1007,24 +1024,22 @@ Complexidade: O((V + E) log V). `Rota` é imutável, com listas `Collections.unm
 | `Public Key Retrieval is not allowed` | Falta `allowPublicKeyRetrieval=true` | Ajustar a URL |
 | `The server time zone value ... is unrecognized` | Falta `serverTimezone` | Ajustar a URL |
 | `ClassNotFoundException: com.mysql.cj.jdbc.Driver` | Driver fora do classpath | Incluir o JAR no `-cp` |
-| `ClassNotFoundException: ifpr.edu.Main` | `target/classes` fora do classpath | Recompilar e conferir o `-cp` |
+| `ClassNotFoundException: ifpr.edu.Main` | `target/classes` fora do classpath, ou execução fora de `campus_path` | Recompilar, conferir o `-cp` e executar de dentro de `campus_path` |
 | `Communications link failure` | Servidor parado ou porta diferente | Iniciar o serviço e conferir a porta 3306 |
 | `Cannot delete or update a parent row` | Exclusão bloqueada por FK | Excluir primeiro os registros dependentes |
 | `A localizacao do professor deve ser um ponto do tipo SALA` | Trigger barrou localização em PASSAGEM/ACESSO | Escolher um ponto `SALA` |
 | `Nao existe rota ...` | Filtros eliminaram todos os caminhos | Ler as contagens da mensagem; desativar o filtro que bloqueia |
 | Snapshot não é aplicado | `-- Gerado em` igual ao `controle_sync`, ou arquivo ausente | Conferir o arquivo e a coluna `snapshot_aplicado_em` |
 | Acentuação quebrada no console | Encoding do terminal | Usar `-Dfile.encoding=UTF-8` e terminal UTF-8 |
-| `Address already in use` ao subir o servidor | Porta 8080 ocupada | `java ifpr.edu.Main --web 8081` |
-| `Pasta do site nao encontrada` | Execução fora de `campus_path/` | Rodar de `campus_path/` ou passar a pasta do site |
-| `401` em qualquer rota protegida | Token ausente, expirado ou servidor reiniciado | Fazer login novamente |
-| `403 Acesso restrito ao professor` | Token de administrador em rota de professor, ou token de outro professor | Usar a conta correta |
-| Página abre sem dados | API fora do ar ou banco não configurado | Conferir `GET /api/saude` e a configuração do banco |
+| Foto aparece como círculo com a inicial | Imagem não encontrada no caminho gravado em `foto_perfil` | Executar a partir de `campus_path` e conferir o caminho em `foto_perfil` |
+| Dados editados no snapshot não aparecem | `-- Gerado em` igual ao já aplicado em `controle_sync`; ou programa executado de outra pasta | Exportar o snapshot de novo e executar de dentro de `campus_path` |
 
 ---
 
 ## 14. Convenções de código
 
-- Pacote base `ifpr.edu`; subpacotes por camada (`api`, `db`, `model`, `dao`, `service`, `ui`, `util`).
+- Pacote base `ifpr.edu`; subpacotes por camada (`controller`, `view`, `db`, `model`, `dao`, `service`,
+  `util`).
 - Classes em `PascalCase`, métodos e variáveis em `camelCase`, constantes em `UPPER_SNAKE_CASE`.
 - SQL em minúsculas dentro das strings Java, com `?` para parâmetros — nunca concatenação de valores.
 - Todo `PreparedStatement`, `ResultSet` e `Connection` em `try-with-resources`.
@@ -1034,54 +1049,43 @@ Complexidade: O((V + E) log V). `Rota` é imutável, com listas `Collections.unm
   - 1451 → registro em uso por outro cadastro;
   - 1452 → registro referenciado inexistente;
   - 1644 → mensagem do trigger.
-- Nenhuma classe de `api` ou `ui` contém SQL; nenhuma classe de `dao` imprime no console.
-- Handlers HTTP devolvem `Resposta` e lançam `ErroHttp` para status 4xx; o `ServidorHttp` traduz
-  `PersistenciaException` em 400 e qualquer outra `RuntimeException` em 500.
+- Nenhuma classe de `view` ou `controller` contém SQL; nenhuma classe de `dao` imprime no console.
 - `Conexao` lê o `db.properties` uma única vez e guarda o resultado em cache estático; sem isso o
   arquivo seria relido do classpath a cada consulta.
-- `GET /api/mapa?bloco=` monta um `Set` com os andares do bloco antes do laço, em vez de consultar o
-  andar de cada ponto.
-- `Roteador` compara primeiro os segmentos literais e só aloca o mapa de parâmetros quando a rota
-  casa, evitando uma alocação por rota testada.
+- `PainelMapa.carregarTudo()` monta um `Map` de id para ponto e um `Set` de pontos verticais antes de
+  desenhar, em vez de procurar o andar de cada ponto a cada clique.
+- `SeletorPonto` normaliza o filtro com `Normalizer.Form.NFD` e remove os acentos antes de comparar,
+  para que "laboratorio" encontre "Laboratorio de Informatica 1".
+- `FotoPerfil` guarda as imagens em cache com chave `caminho|tamanho|lastModified`, e cai no círculo
+  com a inicial do nome quando o arquivo não existe.
 - Textos de interface sem acento no código-fonte, para não depender do encoding do terminal.
 
 ---
 
 ## 15. Estado de verificação
 
-O que foi efetivamente executado e conferido:
+O que foi efetivamente executado e conferido nesta máquina (JDK 25, alvo 21):
 
 | Verificação | Resultado |
 |---|---|
-| Compilação com `javac -encoding UTF-8` (JDK 21, driver 8.0.33) | 40 arquivos, sem erro |
-| `schema.sql` + `dados_iniciais.sql` em MySQL 8.0 | 6 tabelas, 2 triggers, 15 pontos, 15 trechos, 3 professores |
-| Reexecução de `schema.sql` e `procedures.sql` | Sem erro (`if not exists` / `drop ... if exists`) |
-| Constraints negativas (extremidades iguais, distância 0, tipo inválido, login duplicado) | Todas rejeitadas |
-| FK negativas (excluir bloco com andares, ponto usado em trecho) | Todas rejeitadas |
-| Trigger de localização em ponto não-SALA | Rejeitado com SQLSTATE 45000 |
-| Login de professor e de administrador pela API | OK; senha errada devolve 401 com mensagem clara |
-| `GET /api/mapa` e `GET /api/rotas` | 2 blocos, 3 andares, 15 pontos, 15 trechos; rota 1→9 com 35,0 m |
-| `GET /api/mapa?bloco=1` e `?bloco=2` | 11 pontos (andares 1 e 2) e 4 pontos (andar 3) |
-| Método errado e rota inexistente | 405 e 404 |
-| CRUD de bloco pela API (criar, alterar, excluir) | OK, com 401 sem token |
-| CRUD de professor pela API (criar, excluir) | OK |
-| `PUT /api/professores/{id}/mensagem` com token do próprio professor | OK; token de outro professor devolve 403 |
-| `PATCH /api/trechos/{id}/condicoes` | OK |
-| `POST /api/snapshot` | Arquivo regravado em `campus_path/dados/snapshot.sql` |
-| Site servido pelo próprio Java | `/`, `/professor.html`, `/admin.html`, `/css/estilo.css` e `/js/admin.js` com 200 e content-type correto |
-| Rota com "evitar escadas" entre andares | 36,0 m pelo elevador, com troca de andar indicada |
-| Rota impossível com filtros | Mensagem com contagens, filtros preservados |
-| Snapshot: exportar, apagar banco, reimportar | Estado restaurado, incluindo trecho interditado |
-| Snapshot em banco vazio de outro "computador" | `Estado sincronizado`, 15 trechos e 3 professores |
+| Compilação de `src/main/java` com `javac -encoding UTF-8 -d <pasta temporária> -cp <driver>` | 34 arquivos-fonte, 51 classes, exit 0 |
+| `db.properties` no classpath (`getResource("db.properties")`) | Resolveu para `campus_path/src/main/resources/db.properties` |
+| Contagens do banco `campuspath` (`count(*)` nas seis tabelas) | 4 blocos, 6 andares, 64 pontos, 69 trechos, 1 administrador, 3 professores — igual ao `dados_iniciais.sql` |
+| Smoke headless de `PainelMapa` (construção com `MapaController`, sem janela) | Instanciado, 3 componentes, dados carregados do banco |
+| Smoke headless de `SeletorPonto` (filtro sem acento) | "laboratorio" e "LABORATORIO informatica" encontram "Laboratorio de Informatica 1"; "cantina" não |
 
 O que **não** foi verificado neste ambiente:
 
-- `mvn clean package` — Maven não está instalado na máquina de verificação; a compilação foi feita
-  com `javac` e o classpath montado à mão.
-- Testes automatizados — não existe `src/test` e o `pom.xml` não declara JUnit.
-- Renderização visual das páginas — o HTML, o CSS e o JavaScript foram servidos e conferidos por
-  HTTP, mas não houve inspeção em navegador.
-- Sessões após reinício do servidor — por projeto, os tokens ficam em memória e são perdidos.
+- `mvn clean package` — o Maven não está instalado na máquina; a compilação foi feita com `javac` e o
+  classpath montado à mão.
+- Testes JUnit de `RotaServiceTest` — não foram executados; os 8 casos existem no arquivo, mas o
+  resultado deles não foi observado.
+- Abertura real da janela e cliques com mouse — a interface foi apenas instanciada em modo headless;
+  não houve inspeção visual nem interação.
+- `JFileChooser` de foto — o diálogo não foi aberto; o destino `fotos/prof_<id>.png` foi conferido
+  apenas no código.
+- Execução em outro computador — a sincronização por snapshot e a exibição das fotos não foram
+  testadas em uma segunda máquina.
 
 ---
 

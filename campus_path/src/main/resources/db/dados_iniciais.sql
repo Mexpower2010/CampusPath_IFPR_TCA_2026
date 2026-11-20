@@ -164,11 +164,11 @@ possui_escadas, usa_elevador, coberto, interditado) values
 (62, 54, 63, 6.0, true, false, true, false),
 (63, 55, 64, 4.0, false, true, true, false),
 (64, 17, 2, 20.0, false, false, false, false),
-(65, 2, 1, 40.0, false, false, false, false),
+(65, 2, 1, 40.0, false, false, true, false),
 (66, 1, 46, 30.0, false, false, false, false),
-(67, 17, 46, 40.0, false, false, false, false),
-(68, 1, 17, 30.0, false, false, false, false),
-(69, 2, 46, 30.0, false, false, false, false);
+(67, 17, 46, 40.0, false, false, true, false),
+(68, 1, 17, 30.0, false, false, true, false),
+(69, 2, 46, 30.0, false, false, true, false);
 
 -- ---------------------------------------------------------------------
 -- Administrador (senha de teste: admin123)

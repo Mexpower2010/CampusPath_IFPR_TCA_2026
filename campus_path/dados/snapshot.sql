@@ -1,6 +1,6 @@
 -- CampusPath - estado atual do banco, gerado automaticamente pela aplicacao.
 -- Versione este arquivo no Git para restaurar o estado em outro computador.
--- Gerado em 2026-11-19 13:00:06
+-- Gerado em 2026-11-20 15:51:31
 
 use campuspath;
 
@@ -149,14 +149,14 @@ insert into trecho(id_trecho, id_ponto_a, id_ponto_b, distancia_metros, possui_e
 insert into trecho(id_trecho, id_ponto_a, id_ponto_b, distancia_metros, possui_escadas, usa_elevador, coberto, interditado) values (62, 54, 63, 6.0, true, false, true, false);
 insert into trecho(id_trecho, id_ponto_a, id_ponto_b, distancia_metros, possui_escadas, usa_elevador, coberto, interditado) values (63, 55, 64, 4.0, false, true, true, false);
 insert into trecho(id_trecho, id_ponto_a, id_ponto_b, distancia_metros, possui_escadas, usa_elevador, coberto, interditado) values (64, 17, 2, 20.0, false, false, false, false);
-insert into trecho(id_trecho, id_ponto_a, id_ponto_b, distancia_metros, possui_escadas, usa_elevador, coberto, interditado) values (65, 2, 1, 40.0, false, false, false, false);
+insert into trecho(id_trecho, id_ponto_a, id_ponto_b, distancia_metros, possui_escadas, usa_elevador, coberto, interditado) values (65, 2, 1, 40.0, false, false, true, false);
 insert into trecho(id_trecho, id_ponto_a, id_ponto_b, distancia_metros, possui_escadas, usa_elevador, coberto, interditado) values (66, 1, 46, 30.0, false, false, false, false);
-insert into trecho(id_trecho, id_ponto_a, id_ponto_b, distancia_metros, possui_escadas, usa_elevador, coberto, interditado) values (67, 17, 46, 40.0, false, false, false, false);
-insert into trecho(id_trecho, id_ponto_a, id_ponto_b, distancia_metros, possui_escadas, usa_elevador, coberto, interditado) values (68, 1, 17, 30.0, false, false, false, false);
-insert into trecho(id_trecho, id_ponto_a, id_ponto_b, distancia_metros, possui_escadas, usa_elevador, coberto, interditado) values (69, 2, 46, 30.0, false, false, false, false);
+insert into trecho(id_trecho, id_ponto_a, id_ponto_b, distancia_metros, possui_escadas, usa_elevador, coberto, interditado) values (67, 17, 46, 40.0, false, false, true, false);
+insert into trecho(id_trecho, id_ponto_a, id_ponto_b, distancia_metros, possui_escadas, usa_elevador, coberto, interditado) values (68, 1, 17, 30.0, false, false, true, false);
+insert into trecho(id_trecho, id_ponto_a, id_ponto_b, distancia_metros, possui_escadas, usa_elevador, coberto, interditado) values (69, 2, 46, 30.0, false, false, true, false);
 insert into administrador(id_admin, nome_admin, email_admin, senha_admin) values (1, 'Administrador', 'admin@campuspath.ifpr.edu.br', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9');
-insert into professor(id_professor, nome, login, senha_hash, foto_perfil, id_ponto_atual, mensagem, mensagem_enviada_em) values (1, 'Roberta Vanessa Rojo Parcianello', 'roberta.parcianello', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'fotos/gato.png', 8, 'Disponivel para atendimento ate as 17h.', '2026-11-12 14:00:00');
+insert into professor(id_professor, nome, login, senha_hash, foto_perfil, id_ponto_atual, mensagem, mensagem_enviada_em) values (1, 'Roberta Vanessa Rojo Parcianello', 'roberta.parcianello', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'fotos/prof_1.png', 37, 'fazendo o 67', '2026-11-20 15:44:38');
 insert into professor(id_professor, nome, login, senha_hash, foto_perfil, id_ponto_atual, mensagem, mensagem_enviada_em) values (2, 'Fabio Moreira', 'fabio.moreira', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'fotos/cachorro.png', 60, 'Em banca de TCC, retorno as 16h.', '2026-11-12 13:30:00');
 insert into professor(id_professor, nome, login, senha_hash, foto_perfil, id_ponto_atual, mensagem, mensagem_enviada_em) values (3, 'Ana Paula Souza', 'ana.souza', '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92', 'fotos/raposa.png', 36, 'Atendimento no laboratorio.', '2026-11-12 15:10:00');
 
-update controle_sync set snapshot_aplicado_em = '2026-11-19 13:00:06' where id_controle = 1;
+update controle_sync set snapshot_aplicado_em = '2026-11-20 15:51:31' where id_controle = 1;

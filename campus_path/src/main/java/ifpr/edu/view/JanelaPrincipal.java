@@ -14,6 +14,7 @@ import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -26,7 +27,7 @@ public class JanelaPrincipal extends JFrame {
     public JanelaPrincipal() {
         super("CampusPath - IFPR Cascavel");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setMinimumSize(new Dimension(1180, 760));
+        setMinimumSize(new Dimension(1280, 800));
 
         JPanel raiz = new JPanel(new BorderLayout());
         raiz.setBackground(Estilo.FUNDO);
@@ -48,11 +49,11 @@ public class JanelaPrincipal extends JFrame {
         JPanel cabecalho = new JPanel(new BorderLayout());
         cabecalho.setBackground(Estilo.PAINEL);
         cabecalho.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createMatteBorder(0, 0, 1, 0, Estilo.BORDA), new EmptyBorder(12, 16, 12, 16)));
+            BorderFactory.createMatteBorder(0, 0, 1, 0, Estilo.BORDA), new EmptyBorder(16, 20, 16, 20)));
 
         JLabel titulo = new JLabel("CampusPath");
         titulo.setForeground(Estilo.TEXTO);
-        titulo.setFont(Estilo.TITULO);
+        titulo.setFont(new Font("Segoe UI", Font.BOLD, 26));
         cabecalho.add(titulo, BorderLayout.WEST);
 
         JPanel botoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
@@ -66,14 +67,14 @@ public class JanelaPrincipal extends JFrame {
 
     private JButton botao(String texto, String chave) {
         JButton botao = new JButton(texto);
-        botao.setFont(Estilo.CORPO);
+        botao.setFont(new Font("Segoe UI", Font.PLAIN, 15));
         botao.setForeground(Estilo.TEXTO);
         botao.setBackground(Estilo.PAINEL_CLARO);
         botao.setOpaque(true);
         botao.setContentAreaFilled(true);
         botao.setBorderPainted(false);
         botao.setFocusPainted(false);
-        botao.setBorder(new EmptyBorder(7, 14, 7, 14));
+        botao.setBorder(new EmptyBorder(10, 18, 10, 18));
         botao.addActionListener(e -> navegar(chave));
         navegacao.put(chave, botao);
         return botao;

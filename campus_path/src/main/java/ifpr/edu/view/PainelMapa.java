@@ -14,12 +14,11 @@ import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.EmptyBorder;
 import java.awt.BorderLayout;
@@ -27,6 +26,8 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,12 +42,11 @@ public class PainelMapa extends JPanel {
 
     private final MapaController controller;
 
-    private final JComboBox<Object> comboOrigem = new JComboBox<>();
-    private final JComboBox<Object> comboDestino = new JComboBox<>();
+    private final SeletorPonto seletorOrigem = new SeletorPonto("Origem");
+    private final SeletorPonto seletorDestino = new SeletorPonto("Destino");
     private final JCheckBox evitarEscadas = new JCheckBox("Evitar escadas");
     private final JCheckBox somenteCoberto = new JCheckBox("Somente coberto");
     private final ComponenteMapa mapa = new ComponenteMapa();
-    private final JTextArea resultado = new JTextArea();
     private final DefaultListModel<Professor> modeloProfessores = new DefaultListModel<>();
     private final JLabel status = new JLabel(" ");
     private final JLabel vistaAtual = new JLabel("Campus - Terreo");
@@ -114,20 +114,12 @@ public class PainelMapa extends JPanel {
     private JPanel montarLateral() {
         JPanel lateral = new JPanel(new BorderLayout(0, 10));
         lateral.setBackground(Estilo.FUNDO);
-        lateral.setPreferredSize(new Dimension(330, 0));
+        lateral.setPreferredSize(new Dimension(440, 0));
 
         lateral.add(montarRota(), BorderLayout.NORTH);
-        lateral.add(montarCentro(), BorderLayout.CENTER);
+        lateral.add(montarSala(), BorderLayout.CENTER);
         lateral.add(montarProfessores(), BorderLayout.SOUTH);
         return lateral;
-    }
-
-    private JPanel montarCentro() {
-        JPanel centro = new JPanel(new BorderLayout(0, 10));
-        centro.setBackground(Estilo.FUNDO);
-        centro.add(montarSala(), BorderLayout.NORTH);
-        centro.add(montarResultado(), BorderLayout.CENTER);
-        return centro;
     }
 
     private JPanel montarRota() {
@@ -141,21 +133,10 @@ public class PainelMapa extends JPanel {
         titulo.setFont(Estilo.SUBTITULO);
         painel.add(titulo, BorderLayout.NORTH);
 
-        comboOrigem.setRenderer(new RendererPonto());
-        comboDestino.setRenderer(new RendererPonto());
-
-        JPanel campos = new JPanel(new GridLayout(2, 2, 6, 6));
+        JPanel campos = new JPanel(new GridLayout(2, 1, 6, 6));
         campos.setBackground(Estilo.PAINEL);
-        JLabel rotuloOrigem = new JLabel("Origem");
-        rotuloOrigem.setForeground(Estilo.TEXTO_FRACO);
-        rotuloOrigem.setFont(Estilo.PEQUENA);
-        JLabel rotuloDestino = new JLabel("Destino");
-        rotuloDestino.setForeground(Estilo.TEXTO_FRACO);
-        rotuloDestino.setFont(Estilo.PEQUENA);
-        campos.add(rotuloOrigem);
-        campos.add(comboOrigem);
-        campos.add(rotuloDestino);
-        campos.add(comboDestino);
+        campos.add(seletorOrigem);
+        campos.add(seletorDestino);
         painel.add(campos, BorderLayout.CENTER);
 
         JButton calcular = new JButton("Calcular rota");
@@ -184,8 +165,11 @@ public class PainelMapa extends JPanel {
         salaConteudo.setLayout(new BoxLayout(salaConteudo, BoxLayout.Y_AXIS));
         salaConteudo.setBackground(Estilo.PAINEL);
 
-        JScrollPane rolagem = new JScrollPane(salaConteudo);
-        rolagem.setPreferredSize(new Dimension(0, 118));
+        JPanel corpoRolagem = new JPanel(new BorderLayout());
+        corpoRolagem.setBackground(Estilo.PAINEL);
+        corpoRolagem.add(salaConteudo, BorderLayout.NORTH);
+
+        JScrollPane rolagem = new JScrollPane(corpoRolagem);
         rolagem.setBorder(null);
 
         JPanel corpo = new JPanel(new BorderLayout(0, 4));
@@ -193,22 +177,6 @@ public class PainelMapa extends JPanel {
         corpo.add(salaNome, BorderLayout.NORTH);
         corpo.add(rolagem, BorderLayout.CENTER);
         painel.add(corpo, BorderLayout.CENTER);
-        return painel;
-    }
-
-    private JPanel montarResultado() {
-        JPanel painel = new JPanel(new BorderLayout());
-        painel.setBackground(Estilo.PAINEL);
-        painel.setBorder(BorderFactory.createLineBorder(Estilo.BORDA));
-
-        resultado.setEditable(false);
-        resultado.setLineWrap(true);
-        resultado.setWrapStyleWord(true);
-        resultado.setBackground(Estilo.PAINEL);
-        resultado.setForeground(Estilo.TEXTO);
-        resultado.setFont(Estilo.CORPO);
-        resultado.setBorder(new EmptyBorder(8, 8, 8, 8));
-        painel.add(new JScrollPane(resultado), BorderLayout.CENTER);
         return painel;
     }
 
@@ -228,7 +196,16 @@ public class PainelMapa extends JPanel {
         lista.setBackground(Estilo.PAINEL);
         lista.setForeground(Estilo.TEXTO);
         lista.setFont(Estilo.CORPO);
+        lista.setFixedCellHeight(-1);
         lista.setCellRenderer(new RendererProfessor());
+        lista.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent evento) {
+                lista.setFixedCellHeight(-1);
+                lista.revalidate();
+                lista.repaint();
+            }
+        });
         JScrollPane rolagem = new JScrollPane(lista);
         rolagem.setPreferredSize(new Dimension(0, 150));
         rolagem.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
@@ -263,7 +240,7 @@ public class PainelMapa extends JPanel {
             }
             mapa.setTrechos(todosTrechos);
             mapa.setPontosVerticais(pontosVerticais);
-            preencherCombos();
+            preencherSeletores();
             carregarProfessores();
             mostrarTerreo();
         } catch (RuntimeException e) {
@@ -271,15 +248,14 @@ public class PainelMapa extends JPanel {
         }
     }
 
-    private void preencherCombos() {
-        comboOrigem.removeAllItems();
-        comboDestino.removeAllItems();
-        for (Ponto ponto : todosPontos) {
-            comboOrigem.addItem(ponto);
-            comboDestino.addItem(ponto);
+    private void preencherSeletores() {
+        seletorOrigem.setPontos(todosPontos);
+        seletorDestino.setPontos(todosPontos);
+        if (!todosPontos.isEmpty()) {
+            seletorOrigem.setSelecionado(todosPontos.get(0));
         }
-        if (comboDestino.getItemCount() > 1) {
-            comboDestino.setSelectedIndex(1);
+        if (todosPontos.size() > 1) {
+            seletorDestino.setSelecionado(todosPontos.get(1));
         }
     }
 
@@ -392,11 +368,11 @@ public class PainelMapa extends JPanel {
         salaSelecionada = ponto;
         salaConteudo.removeAll();
         if (ponto == null) {
-            salaNome.setText("Nenhum ponto selecionado.");
+            definirSalaNome("Nenhum ponto selecionado.");
         } else if (!ponto.isSala()) {
-            salaNome.setText(ponto.getNome() + " - este ponto nao e uma sala.");
+            definirSalaNome(ponto.getNome() + " - este ponto nao e uma sala.");
         } else {
-            salaNome.setText(ponto.getNome());
+            definirSalaNome(ponto.getNome());
             try {
                 List<Professor> presentes = controller.listarProfessoresPorSala(ponto.getIdPonto());
                 if (presentes.isEmpty()) {
@@ -414,8 +390,22 @@ public class PainelMapa extends JPanel {
         salaConteudo.repaint();
     }
 
+    private void definirSalaNome(String texto) {
+        salaNome.setText("<html><body width='" + larguraSala(20) + "'>"
+            + escapar(texto) + "</body></html>");
+    }
+
+    private int larguraSala(int desconto) {
+        int largura = salaConteudo.getWidth();
+        if (largura <= 0) {
+            largura = 400;
+        }
+        return Math.max(120, largura - desconto);
+    }
+
     private JLabel linha(String texto) {
-        JLabel label = new JLabel(texto);
+        JLabel label = new JLabel("<html><body width='" + larguraSala(20) + "'>"
+            + escapar(texto) + "</body></html>");
         label.setForeground(Estilo.TEXTO_FRACO);
         label.setFont(Estilo.PEQUENA);
         label.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -434,11 +424,13 @@ public class PainelMapa extends JPanel {
 
         JPanel textos = new JPanel(new GridLayout(3, 1, 0, 2));
         textos.setBackground(Estilo.PAINEL);
-        JLabel nome = new JLabel(professor.getNome());
+        JLabel nome = new JLabel("<html><body width='" + larguraSala(60) + "'>"
+            + escapar(professor.getNome()) + "</body></html>");
         nome.setForeground(Estilo.TEXTO);
         nome.setFont(Estilo.CORPO);
-        JLabel mensagem = new JLabel(professor.getMensagem() == null
-            ? "sem mensagem" : professor.getMensagem());
+        JLabel mensagem = new JLabel("<html><body width='" + larguraSala(60) + "'>"
+            + escapar(professor.getMensagem() == null ? "sem mensagem" : professor.getMensagem())
+            + "</body></html>");
         mensagem.setForeground(Estilo.TEXTO_FRACO);
         mensagem.setFont(Estilo.PEQUENA);
         JLabel horario = new JLabel(professor.getMensagemEnviadaEm() == null
@@ -453,19 +445,13 @@ public class PainelMapa extends JPanel {
     }
 
     private void selecionarDestino(Ponto ponto) {
-        for (int i = 0; i < comboDestino.getItemCount(); i++) {
-            Ponto item = (Ponto) comboDestino.getItemAt(i);
-            if (item.getIdPonto().equals(ponto.getIdPonto())) {
-                comboDestino.setSelectedIndex(i);
-                status.setText("Destino: " + ponto.getNome());
-                return;
-            }
-        }
+        seletorDestino.setSelecionado(ponto);
+        status.setText("Destino: " + ponto.getNome());
     }
 
     private void calcularRota() {
-        Ponto origem = (Ponto) comboOrigem.getSelectedItem();
-        Ponto destino = (Ponto) comboDestino.getSelectedItem();
+        Ponto origem = seletorOrigem.getSelecionado();
+        Ponto destino = seletorDestino.getSelecionado();
         if (origem == null || destino == null) {
             aviso("Selecione a origem e o destino.");
             return;
@@ -480,23 +466,14 @@ public class PainelMapa extends JPanel {
                 mostrarTerreo();
             }
             mapa.setCaminho(rota.getCaminho());
-
-            StringBuilder texto = new StringBuilder();
-            texto.append("Origem: ").append(rota.getOrigem().getNome()).append('\n');
-            texto.append("Destino: ").append(rota.getDestino().getNome()).append('\n');
-            texto.append(String.format("Distancia total: %.1f m%n", rota.getDistanciaTotal()));
-            texto.append('\n').append("Passos:").append('\n');
-            for (String passo : rota.getPassos()) {
-                texto.append("  - ").append(passo).append('\n');
-            }
-            resultado.setText(texto.toString());
-            resultado.setCaretPosition(0);
             status.setText(String.format("Rota calculada: %.1f m. O percurso pode continuar em outro andar:"
                 + " clique na escada ou elevador para ver.", rota.getDistanciaTotal()));
         } catch (RuntimeException e) {
             mapa.setCaminho(new ArrayList<>());
-            resultado.setText(e.getMessage());
-            status.setText("Nenhuma rota encontrada com os filtros atuais.");
+            String mensagem = e.getMessage();
+            status.setText(mensagem);
+            JOptionPane.showMessageDialog(this, mensagem, "CampusPath",
+                JOptionPane.INFORMATION_MESSAGE);
         }
     }
 
@@ -504,23 +481,8 @@ public class PainelMapa extends JPanel {
         status.setText(mensagem);
     }
 
-    private static String descreverPonto(Ponto ponto) {
-        String bloco = ponto.getNomeBloco() == null ? "bloco " + ponto.getIdAndar() : ponto.getNomeBloco();
-        String andar = ponto.getNomeAndar() == null ? "andar " + ponto.getIdAndar() : ponto.getNomeAndar();
-        return ponto.getNome() + " (" + bloco + " / " + andar + ")";
-    }
-
-    private static final class RendererPonto extends DefaultListCellRenderer {
-
-        @Override
-        public Component getListCellRendererComponent(JList<?> lista, Object valor, int indice,
-                                                      boolean selecionado, boolean foco) {
-            super.getListCellRendererComponent(lista, valor, indice, selecionado, foco);
-            if (valor instanceof Ponto ponto) {
-                setText(descreverPonto(ponto));
-            }
-            return this;
-        }
+    private static String escapar(String texto) {
+        return texto.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
     }
 
     private static final class RendererProfessor extends DefaultListCellRenderer {
@@ -536,18 +498,17 @@ public class PainelMapa extends JPanel {
                 setText(" ");
                 return this;
             }
+            int largura = lista.getWidth() > 0 ? lista.getWidth() : 340;
+            int texto = Math.max(120, largura - 24 - 30);
             String sala = professor.getNomeSala() == null ? "sem sala" : professor.getNomeSala();
             String mensagem = professor.getMensagem() == null ? "sem mensagem" : professor.getMensagem();
             setIcon(new ImageIcon(
                 FotoPerfil.imagem(professor.getFotoPerfil(), professor.getNome(), 24)));
             setIconTextGap(6);
-            setText("<html><body>" + escapar(professor.getNome() + " - " + sala)
+            setText("<html><body width='" + texto + "'>"
+                + escapar(professor.getNome() + " - " + sala)
                 + "<br><span style='color:#8FA3B8'>" + escapar(mensagem) + "</span></body></html>");
             return this;
-        }
-
-        private static String escapar(String texto) {
-            return texto.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
         }
     }
 }
