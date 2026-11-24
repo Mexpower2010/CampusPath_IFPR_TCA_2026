@@ -14,6 +14,7 @@ import ifpr.edu.model.Ponto;
 import ifpr.edu.model.Professor;
 import ifpr.edu.model.Trecho;
 import ifpr.edu.service.AutenticacaoService;
+import ifpr.edu.util.Senha;
 
 import java.util.List;
 
@@ -105,6 +106,9 @@ public class AdminController {
             professores.inserir(professor);
         } else {
             professores.atualizar(professor);
+            if (senha != null && !senha.isEmpty()) {
+                professores.atualizarSenha(professor.getIdProfessor(), Senha.hash(senha));
+            }
         }
     }
 

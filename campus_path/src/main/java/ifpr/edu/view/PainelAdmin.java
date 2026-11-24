@@ -217,8 +217,11 @@ public class PainelAdmin extends JPanel {
 
     private void recarregarTudo() {
         abaBlocos.carregar();
+        abaAndares.recarregarCombos();
         abaAndares.carregar();
+        abaPontos.recarregarCombos();
         abaPontos.carregar();
+        abaTrechos.recarregarCombos();
         abaTrechos.carregar();
         abaProfessores.carregar();
         abaAdministradores.carregar();
@@ -378,6 +381,7 @@ public class PainelAdmin extends JPanel {
             try {
                 acao.run();
                 carregar();
+                recarregarCombos();
                 status.setText("Operacao concluida.");
             } catch (RuntimeException e) {
                 JOptionPane.showMessageDialog(this, e.getMessage(), "CampusPath", JOptionPane.ERROR_MESSAGE);
@@ -468,7 +472,10 @@ public class PainelAdmin extends JPanel {
             andar.setNivel(form.inteiro("nivel"));
             andar.setImagemMapa(form.texto("imagem"));
             Object bloco = form.objeto("bloco");
-            andar.setIdBloco(bloco instanceof Bloco b ? b.getIdBloco() : null);
+            if (!(bloco instanceof Bloco b)) {
+                throw new IllegalArgumentException("Selecione o bloco.");
+            }
+            andar.setIdBloco(b.getIdBloco());
             controller.salvarAndar(andar);
             idSelecionado = null;
             form.limpar();
@@ -548,7 +555,10 @@ public class PainelAdmin extends JPanel {
             ponto.setCoordenadaX(form.duplo("x"));
             ponto.setCoordenadaY(form.duplo("y"));
             Object andar = form.objeto("andar");
-            ponto.setIdAndar(andar instanceof Andar a ? a.getIdAndar() : null);
+            if (!(andar instanceof Andar a)) {
+                throw new IllegalArgumentException("Selecione o andar.");
+            }
+            ponto.setIdAndar(a.getIdAndar());
             controller.salvarPonto(ponto);
             idSelecionado = null;
             form.limpar();
@@ -626,8 +636,11 @@ public class PainelAdmin extends JPanel {
             trecho.setIdTrecho(idSelecionado);
             Object a = form.objeto("a");
             Object b = form.objeto("b");
-            trecho.setIdPontoA(a instanceof Ponto pa ? pa.getIdPonto() : null);
-            trecho.setIdPontoB(b instanceof Ponto pb ? pb.getIdPonto() : null);
+            if (!(a instanceof Ponto pa) || !(b instanceof Ponto pb)) {
+                throw new IllegalArgumentException("Selecione o Ponto A e o Ponto B.");
+            }
+            trecho.setIdPontoA(pa.getIdPonto());
+            trecho.setIdPontoB(pb.getIdPonto());
             Double distancia = form.duplo("distancia");
             trecho.setDistanciaMetros(distancia == null ? 0 : distancia);
             trecho.setPossuiEscadas(form.marcado("escadas"));
@@ -676,7 +689,7 @@ public class PainelAdmin extends JPanel {
             super(new String[] {"ID", "Nome", "Login", "Sala"});
             form.campoTexto("nome", "Nome");
             form.campoTexto("login", "Login");
-            form.campoSenha("senha", "Senha (so no cadastro)");
+            form.campoSenha("senha", "Senha (vazio mantem a atual)");
             form.campoTexto("foto", "Foto de perfil");
         }
 

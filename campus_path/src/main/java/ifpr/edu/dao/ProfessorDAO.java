@@ -136,6 +136,20 @@ public class ProfessorDAO {
         }
     }
 
+    public void atualizarSenha(int idProfessor, String senhaHash) {
+        String sql = "update professor set senha_hash = ? where id_professor = ?";
+        try (Connection conexao = Conexao.abrir();
+             PreparedStatement stmt = conexao.prepareStatement(sql)) {
+            stmt.setString(1, senhaHash);
+            stmt.setInt(2, idProfessor);
+            if (stmt.executeUpdate() == 0) {
+                throw new PersistenciaException("Professor nao encontrado.");
+            }
+        } catch (SQLException e) {
+            throw PersistenciaException.de(e, "Erro ao alterar senha");
+        }
+    }
+
     public void atualizarNome(int idProfessor, String nome) {
         String sql = "update professor set nome = ? where id_professor = ?";
         try (Connection conexao = Conexao.abrir();

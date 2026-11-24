@@ -539,22 +539,7 @@ que ainda é referenciado, o que realiza as regras de integridade sem código ad
             <artifactId>mysql-connector-java</artifactId>
             <version>8.0.33</version>
         </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <version>5.10.2</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.2.5</version>
-            </plugin>
-        </plugins>
-    </build>
 </project>
 ```
 
@@ -565,12 +550,10 @@ que ainda é referenciado, o que realiza as regras de integridade sem código ad
 | `version` | `1.0-SNAPSHOT` |
 | Java | 21 (`maven.compiler.source` e `target`) |
 | Driver JDBC | `mysql:mysql-connector-java:8.0.33` (escopo padrão, `compile`) |
-| Testes | `org.junit.jupiter:junit-jupiter:5.10.2` (escopo `test`) |
-| Plugin de testes | `maven-surefire-plugin:3.2.5` |
 | Empacotamento | padrão (`jar`) |
 
-O projeto tem **duas dependências**: o driver JDBC do MySQL, usada em tempo de execução, e o JUnit 5,
-usada apenas na compilação e execução dos testes. Não há ORM, framework de injeção nem biblioteca de
+O projeto tem **uma dependência**: o driver JDBC do MySQL, usada em tempo de execução. Não há ORM,
+framework de injeção nem biblioteca de
 terceiros para o algoritmo de rota. O Dijkstra é implementado à mão com `java.util.PriorityQueue`.
 
 Como o POM não configura `maven-jar-plugin` com `Main-Class` nem `maven-shade-plugin`, o `mvn package`
@@ -586,7 +569,7 @@ CampusPath_IFPR_TCA_2026/
 ├── LICENSE                        MIT
 ├── .gitignore                     ignora target/, db.properties e arquivos de IDE
 └── campus_path/                   projeto Maven (é esta a pasta aberta no VS Code)
-    ├── pom.xml                    Java 21, driver MySQL 8.0.33, JUnit 5.10.2
+    ├── pom.xml                    Java 21 e driver MySQL 8.0.33
     ├── dados/
     │   └── snapshot.sql           estado do banco versionado no Git (seção 10)
     ├── fotos/                     imagens de perfil, lidas por caminho relativo
@@ -635,19 +618,17 @@ CampusPath_IFPR_TCA_2026/
     │       ├── FotoPerfil.java       foto circular ou inicial do nome
     │       ├── Formulario.java       campos rotulados dos diálogos de CRUD
     │       └── Estilo.java           cores e fontes do tema escuro
-    ├── src/main/resources/
-    │   ├── db.properties.example  modelo de configuração (versionado)
-    │   └── db/
-    │       ├── schema.sql         DDL: 6 tabelas + controle_sync + 2 triggers
-    │       ├── dados_iniciais.sql dados de teste
-    │       ├── procedures.sql     4 procedures de apoio
-    │       ├── consultas.sql      consultas e joins de apoio
-    │       └── usuario.sql        usuário de aplicação com permissão mínima
-    └── src/test/java/ifpr/edu/service/
-        └── RotaServiceTest.java   8 testes do cálculo de rota, sem banco
+    └── src/main/resources/
+        ├── db.properties.example  modelo de configuração (versionado)
+        └── db/
+            ├── schema.sql         DDL: 6 tabelas + controle_sync + 2 triggers
+            ├── dados_iniciais.sql dados de teste
+            ├── procedures.sql     4 procedures de apoio
+            ├── consultas.sql      consultas e joins de apoio
+            └── usuario.sql        usuário de aplicação com permissão mínima
 ```
 
-Total: **34 arquivos Java** — 33 em `src/main/java` e 1 em `src/test/java`.
+Total: **33 arquivos Java**, todos em `src/main/java`.
 A interface é Swing, no pacote `view`.
 
 ### 7.1 Camadas
@@ -1068,7 +1049,7 @@ O que foi efetivamente executado e conferido nesta máquina (JDK 25, alvo 21):
 
 | Verificação | Resultado |
 |---|---|
-| Compilação de `src/main/java` com `javac -encoding UTF-8 -d <pasta temporária> -cp <driver>` | 34 arquivos-fonte, 51 classes, exit 0 |
+| Compilação de `src/main/java` com `javac -encoding UTF-8 -d <pasta temporária> -cp <driver>` | 33 arquivos-fonte, 51 classes, exit 0 |
 | `db.properties` no classpath (`getResource("db.properties")`) | Resolveu para `campus_path/src/main/resources/db.properties` |
 | Contagens do banco `campuspath` (`count(*)` nas seis tabelas) | 4 blocos, 6 andares, 64 pontos, 69 trechos, 1 administrador, 3 professores — igual ao `dados_iniciais.sql` |
 | Smoke headless de `PainelMapa` (construção com `MapaController`, sem janela) | Instanciado, 3 componentes, dados carregados do banco |
@@ -1078,8 +1059,6 @@ O que **não** foi verificado neste ambiente:
 
 - `mvn clean package` — o Maven não está instalado na máquina; a compilação foi feita com `javac` e o
   classpath montado à mão.
-- Testes JUnit de `RotaServiceTest` — não foram executados; os 8 casos existem no arquivo, mas o
-  resultado deles não foi observado.
 - Abertura real da janela e cliques com mouse — a interface foi apenas instanciada em modo headless;
   não houve inspeção visual nem interação.
 - `JFileChooser` de foto — o diálogo não foi aberto; o destino `fotos/prof_<id>.png` foi conferido
